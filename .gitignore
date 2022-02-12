@@ -131,3 +131,4 @@ dmypy.json
 /webhook_pkey.pem
 /saytemp.ogg
 /dictionary.txt
+.idea/
