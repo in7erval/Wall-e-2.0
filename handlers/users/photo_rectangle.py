@@ -31,7 +31,7 @@ async def photo_rectangles(message: types.Message):
     filename = NAME_FORMAT.format(str(message.from_user.id),
                                   hash(uuid.uuid4()),
                                   datetime.datetime.now().isoformat())
-    path = ROOT_PATH.joinpath(f'temp_images/{filename}').resolve()
+    path = ROOT_PATH.joinpath(f'temp_images/{filename}').resolve().absolute()
     logging.info(f'Path determined as {path}')
     await message.reply_to_message.photo[-1].download(destination_file=filename)
     logging.info(f'Saved {filename}')
