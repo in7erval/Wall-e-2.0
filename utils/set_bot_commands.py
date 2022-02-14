@@ -27,6 +27,7 @@ async def set_default_commands(dp):
             types.BotCommand('register_inline_photo', 'Зарегистрировать инлайн-фото'),
             # types.BotCommand('unregister_inline_photo', 'Удалить инлайн-фото из запросов'),
             types.BotCommand("del", "Удалить данное сообщение и reply на другое"),
-            types.BotCommand('tts', 'Озвучить сообщение')
+            types.BotCommand('tts', 'Озвучить сообщение'),
+            types.BotCommand('photo_rectangles', 'Преобразовать фото')
         ]
     )
