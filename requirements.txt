@@ -8,3 +8,4 @@ aioredis
 gTTS~=2.2.3
 DateTime~=4.3
 requests~=2.27.1
+opencv-python
