@@ -31,10 +31,11 @@ async def photo_rectangles(message: types.Message):
     filename = NAME_FORMAT.format(str(message.from_user.id),
                                   hash(uuid.uuid4()),
                                   datetime.datetime.now().isoformat())
-    await message.reply_to_message.photo[-1].download(destination_file=filename)
-    logging.info(f'Saved {filename}')
     path = ROOT_PATH.joinpath(f'temp_images/{filename}').resolve()
     logging.info(f'Path determined as {path}')
+    await message.reply_to_message.photo[-1].download(destination_file=filename)
+    logging.info(f'Saved {filename}')
+
     output_file_path, name = await process(str(path), random_palette=True)
     await message.reply_photo(
         photo=output_file_path,
