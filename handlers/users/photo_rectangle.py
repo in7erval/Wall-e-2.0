@@ -1,4 +1,5 @@
 import datetime
+import logging
 import pathlib
 import uuid
 
@@ -17,8 +18,7 @@ ROOT_PATH = pathlib.Path(__file__).parent.resolve().parent.resolve()
 
 @dp.message_handler(Command('photo_rectangles'))
 async def photo_rectangles(message: types.Message):
-    query = message.get_args()
-    if not query:
+    if not message.reply_to_message:
         await message.reply(
             text='Ответь на сообщение с фотографией для обработки'
         )
@@ -31,8 +31,10 @@ async def photo_rectangles(message: types.Message):
     filename = NAME_FORMAT.format(str(message.from_user.id),
                                   hash(uuid.uuid4()),
                                   datetime.datetime.now().isoformat())
-    await message.reply_to_message.photo[-1].download(destination=filename)
+    await message.reply_to_message.photo[-1].download(destination_file=filename)
+    logging.info(f'Saved {filename}')
     path = ROOT_PATH.joinpath(f'temp_images/{filename}').resolve()
+    logging.info(f'Path determined as {path}')
     output_file_path, name = await process(str(path), random_palette=True)
     await message.reply_photo(
         photo=output_file_path,
