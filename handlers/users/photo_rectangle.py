@@ -41,8 +41,9 @@ async def photo_rectangles(message: types.Message):
 
     await message.reply_photo(
         photo=InputFile(output_file_path),
-        caption=f"Было использовано {name}",
-        reply_markup=keyboard_inline
+        caption=f"Было использовано {name}"
+        # ,
+        # reply_markup=keyboard_inline
     )
     await asyncio.sleep(5)
     os.remove(path)
