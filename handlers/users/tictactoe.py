@@ -39,7 +39,7 @@ async def tictactoe_turn(call: types.CallbackQuery):
     prev_text = call.message.text
     i, j = number // 3, number % 3
     button = buttons_arr[i][j]
-    if button == ZERO:
+    if button == SPACE:
         if prev_text == TURN_ZERO:
             buttons_arr[i][j] = ZERO
             text = TURN_KREST
