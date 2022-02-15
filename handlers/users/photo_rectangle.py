@@ -61,15 +61,6 @@ async def photo_rectangles_inline(call: types.CallbackQuery):
             text='Удалено сообщение с командой. Запустите весь процесс заново',
         )
         return
-    logging.debug(f"call.message.reply_to_message.reply_to_message : {call.message.reply_to_message.reply_to_message}")
-    if not call.message.reply_to_message.reply_to_message:
-        await call.message.edit_reply_markup(
-            reply_markup=None
-        )
-        await call.message.reply(
-            text='Удалено сообщение с фотографией. Запустите весь процесс заново'
-        )
-        return
     id = int(c_data.get("id"))
     rectangle_img = await select_rectangle_img_by_id(id=id)
     file_id = rectangle_img.image_id
