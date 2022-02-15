@@ -27,14 +27,9 @@ async def photo_rectangles(message: types.Message):
             text='Ответь на сообщение с фотографией для обработки'
         )
         return
-    elif not message.reply_to_message.photo:
+    if not message.reply_to_message.photo:
         await message.reply(
             text='В отвеченном сообщении нет фотографии'
-        )
-        return
-    elif not message.photo:
-        await message.reply(
-            text='Пришлите фото с командой или ответьте командой на сообщение с фотографией'
         )
         return
     path, output_file_path, name = await rectangle_photo(message)
@@ -93,10 +88,7 @@ async def rectangle_photo(message: types.Message) -> (str, str, str):
                                   datetime.datetime.now().isoformat())
     path = ROOT_PATH.joinpath(f'temp_images/{filename}').resolve().absolute()
     logging.debug(f'Path determined as {path}')
-    if message.reply_to_message.photo:
-        await message.reply_to_message.photo[-1].download(destination_file=path)
-    else:
-        await message.photo[-1].download(destination_file=path)
+    await message.reply_to_message.photo[-1].download(destination_file=path)
     logging.debug(f'Saved {filename}')
 
     output_file_path, name = await process(str(path), random_palette=True)
