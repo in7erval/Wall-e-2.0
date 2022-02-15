@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import random
 
@@ -16,6 +17,8 @@ ZERO_CHAR = '⭕️'
 
 TURN_ZERO = f"Ход {ZERO_CHAR}"
 TURN_KREST = f"Ход {KREST_CHAR}"
+
+auto_turn_flag = True
 
 
 @dp.message_handler(Text(equals="Крестики-нолики"))
@@ -37,29 +40,16 @@ async def tictactoe_turn(call: types.CallbackQuery):
     prev_text = call.message.text
 
     buttons_arr = await inline2array(reply_markup.inline_keyboard)
-
     i, j = number // 3, number % 3
-
     if buttons_arr[i][j] == SPACE:
-        if prev_text == TURN_ZERO:
+        turn_zero = prev_text == TURN_ZERO
+        if turn_zero:
             buttons_arr[i][j] = ZERO
             text = TURN_KREST
         else:
             buttons_arr[i][j] = KREST
             text = TURN_ZERO
-        is_win, who_wins = await check_win(buttons_arr)
-        nospace = await check_no_space(buttons_arr)
-        if nospace or is_win:
-            who_wins = KREST_CHAR if who_wins == KREST else ZERO_CHAR
-            text = f'Выиграл {who_wins}!' if is_win else f'Ничья!'
-        else:
-            await auto_turn(buttons_arr, prev_text == TURN_ZERO)
-            text = TURN_KREST if text == TURN_ZERO else TURN_ZERO
-            is_win, who_wins = await check_win(buttons_arr)
-            nospace = await check_no_space(buttons_arr)
-            if nospace or is_win:
-                who_wins = KREST_CHAR if who_wins == KREST else ZERO_CHAR
-                text = f'Выиграл {who_wins}!' if is_win else f'Ничья!'
+        is_win, who_wins, nospace, text = await check_state(buttons_arr, text)
         reply_markup = await array2inline(buttons_arr, adding=is_win)
         if nospace or is_win:
             reply_markup.inline_keyboard.append(
@@ -67,6 +57,10 @@ async def tictactoe_turn(call: types.CallbackQuery):
                                       callback_data='tictactoe_new')]
             )
         await call.message.edit_text(text, reply_markup=reply_markup)  # todo: fix prev_text after adding auto_turn bool
+
+        if auto_turn_flag and not is_win and not nospace:
+            await asyncio.sleep(1)
+            await auto_turn(turn_zero, buttons_arr, prev_text, call)
 
 
 @dp.callback_query_handler(Text(contains='tictactoe_new'))
@@ -128,14 +122,38 @@ async def check_no_space(arr: []):
     return True
 
 
-async def auto_turn(arr: [], krest_turn: bool):
+async def auto_turn(turn_zero: bool, buttons_arr: list, prev_text: str, call: types.CallbackQuery):
+    turn_zero = not turn_zero
+    await auto_turn_logic(buttons_arr, turn_zero)
+    text = prev_text
+    is_win, who_wins, nospace, text = await check_state(buttons_arr, text)
+    reply_markup = await array2inline(buttons_arr, adding=is_win)
+    if nospace or is_win:
+        reply_markup.inline_keyboard.append(
+            [InlineKeyboardButton(text='Сыграем ещё?',
+                                  callback_data='tictactoe_new')]
+        )
+    await call.message.edit_text(text, reply_markup=reply_markup)
+
+
+async def auto_turn_logic(arr: [], turn_zero: bool):
     spaces = []
     for i, row in enumerate(arr):
         for j, elem in enumerate(row):
             if elem == SPACE:
                 spaces.append((i, j))
     i, j = random.choice(spaces)
-    if krest_turn:
-        arr[i][j] = KREST
-    else:
+    if turn_zero:
         arr[i][j] = ZERO
+    else:
+        arr[i][j] = KREST
+
+
+async def check_state(buttons_arr: list, text: str):
+    is_win, who_wins = await check_win(buttons_arr)
+    nospace = await check_no_space(buttons_arr)
+    if nospace or is_win:
+        who_wins = KREST_CHAR if who_wins == KREST else ZERO_CHAR
+        text = f'Выиграл {who_wins}!' if is_win else f'Ничья!'
+    return is_win, who_wins, nospace, text
+
