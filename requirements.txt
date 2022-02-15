@@ -8,7 +8,6 @@ aioredis
 gTTS~=2.2.2
 DateTime~=4.3
 requests~=2.25.1
-opencv-python
 
 numpy~=1.22.2
 scikit-image~=0.19.1
