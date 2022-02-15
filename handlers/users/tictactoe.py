@@ -101,16 +101,16 @@ async def array2inline(buttons_arr: [], adding: bool = False):
 async def check_win(arr: []):
     # check rows
     for i in range(3):
-        if arr[i][0] == arr[i][1] == arr[i][2]:
+        if arr[i][0] == arr[i][1] == arr[i][2] != SPACE:
             return True, arr[i][0]
     # check columns
     for i in range(3):
-        if arr[0][i] == arr[1][i] == arr[2][i]:
+        if arr[0][i] == arr[1][i] == arr[2][i] != SPACE:
             return True, arr[i][0]
     # check diag
-    if arr[0][0] == arr[1][1] == arr[2][2]:
+    if arr[0][0] == arr[1][1] == arr[2][2] != SPACE:
         return True, arr[0][0]
-    if arr[0][2] == arr[1][1] == arr[2][0]:
+    if arr[0][2] == arr[1][1] == arr[2][0] != SPACE:
         return True, arr[0][0]
     return False, None
 
