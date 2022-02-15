@@ -59,7 +59,7 @@ async def tictactoe_turn(call: types.CallbackQuery):
         await call.message.edit_text(text, reply_markup=reply_markup)  # todo: fix prev_text after adding auto_turn bool
 
         if auto_turn_flag and not is_win and not nospace:
-            await asyncio.sleep(1)
+            await asyncio.sleep(0.5)
             await auto_turn(turn_zero, buttons_arr, prev_text, call)
 
 
