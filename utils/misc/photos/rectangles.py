@@ -108,11 +108,6 @@ PALETTES = {
 }
 
 
-ROOT_PATH = pathlib.Path(__file__).parent.resolve().parent.resolve().parent.resolve()
-
-DIR = "temp_images"
-
-
 async def process(img_name: str, rectangle_color: tuple = (255, 255, 255), random_color: bool = False,
             palette_name: str = None,
             random_palette: bool = False) -> (Path, str):
@@ -143,6 +138,6 @@ async def process(img_name: str, rectangle_color: tuple = (255, 255, 255), rando
                 draw_rectangle_delta(img,
                                      (int(i * delta_row), int(j * delta_column)),
                                      width_square, color=random.choice(colors))
-    fname = ROOT_PATH.joinpath(f'{DIR}/{img_name.split(".")[0]}_output.jpg')
+    fname = pathlib.Path(f'{img_name[:-4]}_output.jpg')
     io.imsave(str(fname), img)
     return fname, palette_key if palette_key else (color_key if color_key else "")
