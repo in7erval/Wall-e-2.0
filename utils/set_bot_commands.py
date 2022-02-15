@@ -6,6 +6,7 @@ async def set_default_commands(dp):
         [
             # types.BotCommand("start", "Запустить бота"),
             types.BotCommand("help", "Вывести справку"),
+            types.BotCommand("tictactoe", 'Игра "крестики-нолики"'),
             types.BotCommand("get_fox", "Прислать рандомное фото лисички (кто не любит лисичек???)"),
             types.BotCommand("get_cat", "Прислать рандомное фото котика (кто не любит котиков???)"),
             types.BotCommand('send_keyboard', 'Активировать клавиатуру'),
