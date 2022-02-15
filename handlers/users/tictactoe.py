@@ -89,7 +89,7 @@ async def inline2array(buttons: []):
             else:
                 row.append(ZERO)
         buttons_arr.append(row)
-    return buttons
+    return buttons_arr
 
 
 async def array2inline(buttons_arr: []):
