@@ -5,10 +5,10 @@ keyboard_inline = lambda id: InlineKeyboardMarkup(
     inline_keyboard=[
         [
             InlineKeyboardButton(text="Попробовать ещё раз",
-                                 callback_data=callback_data.new(name="try_rectangles_button", id=id))
+                                 callback_data=callback_data.new(id=id))
         ]
     ]
 )
 
 
-callback_data = CallbackData("name", "id")
+callback_data = CallbackData("try_rectangles_button", "id")
