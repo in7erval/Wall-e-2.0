@@ -46,7 +46,7 @@ keyboard_init = InlineKeyboardMarkup(
     inline_keyboard=[
         [
             InlineKeyboardButton(text='С другом',
-                                 callback_data=callback_data_init.new(mode='pvp', turn='0'))
+                                 callback_data=callback_data_init.new(mode='pvp', turn='krest'))
         ],
         [
             InlineKeyboardButton(text='За ❌ с компьютером',

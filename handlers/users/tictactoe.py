@@ -8,6 +8,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from keyboards.inline.tictactoe_inline import keyboard_inline, callback_data, SPACE_CHAR, keyboard_init
 from loader import dp
+from utils.misc import rate_limit
 
 SPACE = 0
 KREST = 1
@@ -26,29 +27,20 @@ async def tictactoe_init(message: types.Message):
         text='Выбери режим:',
         reply_markup=keyboard_init
     )
-    # await message.answer(
-    #     text=TURN_KREST,
-    #     reply_markup=keyboard_inline
-    # )
     if message.text == "Крестики-нолики":
         await message.delete()
 
 
+@rate_limit(limit=10)
 @dp.callback_query_handler(Text(contains="tictactoe_init"))
 async def tictactoe_start(call: types.CallbackQuery):
     c_data = callback_data.parse(call.data)
     mode = c_data.get('mode')
     turn = c_data.get('turn')
-    if mode == 'pve':
-        await call.message.edit_text(
-            text=TURN_KREST if turn == 'krest' else TURN_ZERO,
-            reply_markup=keyboard_inline(mode)
-        )
-    else:
-        await call.message.edit_text(
-            text=TURN_KREST,
-            reply_markup=keyboard_inline(mode)
-        )
+    await call.message.edit_text(
+        text=TURN_KREST if turn == 'krest' else TURN_ZERO,
+        reply_markup=keyboard_inline(mode)
+    )
 
 
 @dp.callback_query_handler(Text(contains='tictactoe_item'))
