@@ -10,7 +10,7 @@ from aiogram.dispatcher.filters import Command
 from aiogram.types import InputFile, InputMedia, InputMediaPhoto
 
 from keyboards.inline.rectangles_inline import keyboard_inline
-from loader import dp
+from loader import dp, bot
 from utils.misc.photos.rectangles import process
 
 NAME_FORMAT = '{0}_{1}_{2}.jpg'
@@ -27,9 +27,14 @@ async def photo_rectangles(message: types.Message):
             text='Ответь на сообщение с фотографией для обработки'
         )
         return
-    if not message.reply_to_message.photo:
+    elif not message.reply_to_message.photo:
         await message.reply(
             text='В отвеченном сообщении нет фотографии'
+        )
+        return
+    elif not message.photo:
+        await message.reply(
+            text='Пришлите фото с командой или ответьте командой на сообщение с фотографией'
         )
         return
     path, output_file_path, name = await rectangle_photo(message)
@@ -87,7 +92,10 @@ async def rectangle_photo(message: types.Message) -> (str, str, str):
                                   datetime.datetime.now().isoformat())
     path = ROOT_PATH.joinpath(f'temp_images/{filename}').resolve().absolute()
     logging.debug(f'Path determined as {path}')
-    await message.reply_to_message.photo[-1].download(destination_file=path)
+    if message.reply_to_message.photo:
+        await message.reply_to_message.photo[-1].download(destination_file=path)
+    else:
+        await message.photo[-1].download(destination_file=path)
     logging.debug(f'Saved {filename}')
 
     output_file_path, name = await process(str(path), random_palette=True)
