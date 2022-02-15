@@ -15,7 +15,7 @@ NAME_FORMAT = '{0}_{1}_{2}.jpg'
 
 DIR = 'temp_images'
 
-ROOT_PATH = pathlib.Path(__file__).parent.resolve().parent.resolve()
+ROOT_PATH = pathlib.Path(__file__).parent.resolve().parent.resolve().parent.resolve()
 
 
 @dp.message_handler(Command('photo_rectangles'))
