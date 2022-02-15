@@ -37,9 +37,14 @@ async def tictactoe_start(call: types.CallbackQuery):
     c_data = callback_data_init.parse(call.data)
     mode = c_data.get('mode')
     turn = c_data.get('turn')
+    keyinline = keyboard_inline(mode)
+    if mode == 'pve' and turn == 'zero':
+        arr = await inline2array(keyinline.inline_keyboard)
+        await auto_turn_logic(arr, turn_zero=False)
+        keyinline = await array2inline(arr, mode)
     await call.message.edit_text(
         text=TURN_KREST if turn == 'krest' else TURN_ZERO,
-        reply_markup=keyboard_inline(mode)
+        reply_markup=keyinline
     )
 
 
@@ -82,7 +87,6 @@ async def tictactoe_new(call: types.CallbackQuery):
         text='Выбери режим:',
         reply_markup=keyboard_init
     )
-
 
 async def inline2array(buttons: []):
     buttons_arr = []
