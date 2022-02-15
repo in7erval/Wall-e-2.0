@@ -48,16 +48,23 @@ async def photo_rectangles(message: types.Message):
 
 @dp.callback_query_handler(text='try_rectangles_button')
 async def photo_rectangles_inline(call: types.CallbackQuery):
+    logging.debug(f"call: {call}")
+    logging.debug(f"call.message.reply_to_message : {call.message.reply_to_message}")
     if not call.message.reply_to_message:
-        await call.message.edit_text(
-            text='Удалено сообщение с командой. Запустите весь процесс заново',
+        await call.message.edit_reply_markup(
             reply_markup=None
         )
+        await call.message.reply(
+            text='Удалено сообщение с командой. Запустите весь процесс заново',
+        )
         return
+    logging.debug(f"call.message.reply_to_message.reply_to_message : {call.message.reply_to_message.reply_to_message}")
     if not call.message.reply_to_message.reply_to_message:
-        await call.message.edit_text(
-            text='Удалено сообщение с фотографией. Запустите весь процесс заново',
+        await call.message.edit_reply_markup(
             reply_markup=None
+        )
+        await call.message.reply(
+            text='Удалено сообщение с фотографией. Запустите весь процесс заново'
         )
         return
     path, output_file_path, name = await rectangle_photo(call.message.reply_to_message.reply_to_message)
@@ -86,4 +93,3 @@ async def rectangle_photo(message: types.Message) -> (str, str, str):
     output_file_path, name = await process(str(path), random_palette=True)
     logging.debug(f'output: {output_file_path}')
     return path, output_file_path, name
-
