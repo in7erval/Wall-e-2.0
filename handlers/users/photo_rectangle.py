@@ -7,8 +7,9 @@ import uuid
 
 from aiogram import types
 from aiogram.dispatcher.filters import Command
-from aiogram.types import InputFile
+from aiogram.types import InputFile, InputMedia, InputMediaPhoto
 
+from keyboards.inline.rectangles_inline import keyboard_inline
 from loader import dp
 from utils.misc.photos.rectangles import process
 
@@ -31,6 +32,53 @@ async def photo_rectangles(message: types.Message):
             text='В отвеченном сообщении нет фотографии'
         )
         return
+    path, output_file_path, name = await rectangle_photo(message)
+
+    await message.reply_media_group(
+        media=[InputFile(path), InputFile(output_file_path)],
+    )
+
+    await message.reply_photo(
+        photo=InputFile(output_file_path),
+        caption=f"Было использовано {name}",
+        reply_markup=keyboard_inline
+    )
+    await asyncio.sleep(5)
+    os.remove(path)
+    logging.debug(f'{path} removed')
+    os.remove(output_file_path)
+    logging.debug(f'{output_file_path} removed')
+
+
+@dp.callback_query_handler(text='try_rectangles_button')
+async def generate_random_inline(call: types.CallbackQuery):
+    if not call.message.reply_to_message:
+        await call.message.edit_text(
+            text='Удалено сообщение с командой. Запустите весь процесс заново',
+            reply_markup=None
+        )
+        return
+    if not call.message.reply_to_message.reply_to_message:
+        await call.message.edit_text(
+            text='Удалено сообщение с фотографией. Запустите весь процесс заново',
+            reply_markup=None
+        )
+        return
+    path, output_file_path, name = await rectangle_photo(call.message.reply_to_message.reply_to_message)
+    await call.message.edit_media(
+        media=InputMediaPhoto(media=InputFile(output_file_path),
+                              caption=f'Было использовано {name}'),
+        reply_markup=keyboard_inline
+    )
+
+    await asyncio.sleep(5)
+    os.remove(path)
+    logging.debug(f'{path} removed')
+    os.remove(output_file_path)
+    logging.debug(f'{output_file_path} removed')
+
+
+async def rectangle_photo(message: types.Message) -> (str, str, str):
     filename = NAME_FORMAT.format(str(message.from_user.id),
                                   hash(uuid.uuid4()),
                                   datetime.datetime.now().isoformat())
@@ -41,17 +89,5 @@ async def photo_rectangles(message: types.Message):
 
     output_file_path, name = await process(str(path), random_palette=True)
     logging.debug(f'output: {output_file_path}')
-
-    await message.reply_photo(
-        photo=InputFile(output_file_path),
-        caption=f"Было использовано {name}"
-    )
-    await asyncio.sleep(5)
-    os.remove(path)
-    logging.debug(f'{path} removed')
-    os.remove(output_file_path)
-    logging.debug(f'{output_file_path} removed')
-
-
-
+    return path, output_file_path, name
 
