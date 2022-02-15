@@ -47,7 +47,8 @@ async def tictactoe_start(call: types.CallbackQuery):
 async def tictactoe_turn(call: types.CallbackQuery):
     c_data = callback_data.parse(call.data)
     number = int(c_data.get("number"))
-    auto_turn_flag = c_data.get("mode") == 'pve'
+    mode = c_data.get("mode")
+    auto_turn_flag = mode == 'pve'
     reply_markup = call.message.reply_markup
     prev_text = call.message.text
 
@@ -62,7 +63,7 @@ async def tictactoe_turn(call: types.CallbackQuery):
             buttons_arr[i][j] = KREST
             text = TURN_ZERO
         is_win, who_wins, nospace, text = await check_state(buttons_arr, text)
-        reply_markup = await array2inline(buttons_arr, adding=is_win)
+        reply_markup = await array2inline(buttons_arr, mode=mode, adding=is_win)
         if nospace or is_win:
             reply_markup.inline_keyboard.append(
                 [InlineKeyboardButton(text='Сыграем ещё?',
@@ -72,7 +73,7 @@ async def tictactoe_turn(call: types.CallbackQuery):
 
         if auto_turn_flag and not is_win and not nospace:
             await asyncio.sleep(0.5)
-            await auto_turn(turn_zero, buttons_arr, prev_text, call)
+            await auto_turn(turn_zero, buttons_arr, prev_text, call, mode=mode)
 
 
 @dp.callback_query_handler(Text(contains='tictactoe_new'))
@@ -95,7 +96,7 @@ async def inline2array(buttons: []):
     return buttons_arr
 
 
-async def array2inline(buttons_arr: [], adding: bool = False):
+async def array2inline(buttons_arr: [], mode:str, adding: bool = False):
     inline_keyboard = []
     for i, button_row in enumerate(buttons_arr):
         inline_keyboard_row = []
@@ -104,7 +105,8 @@ async def array2inline(buttons_arr: [], adding: bool = False):
             number = i * 3 + j
             inline_keyboard_row.append(InlineKeyboardButton(text=text,
                                                             callback_data=callback_data.new(
-                                                                number=number) if not adding else 'finish'))
+                                                                number=number,
+                                                            mode=mode) if not adding else 'finish'))
         inline_keyboard.append(inline_keyboard_row)
     return InlineKeyboardMarkup(row_width=3, inline_keyboard=inline_keyboard)
 
@@ -134,12 +136,12 @@ async def check_no_space(arr: []):
     return True
 
 
-async def auto_turn(turn_zero: bool, buttons_arr: list, prev_text: str, call: types.CallbackQuery):
+async def auto_turn(turn_zero: bool, buttons_arr: list, prev_text: str, call: types.CallbackQuery, mode: str):
     turn_zero = not turn_zero
     await auto_turn_logic(buttons_arr, turn_zero)
     text = prev_text
     is_win, who_wins, nospace, text = await check_state(buttons_arr, text)
-    reply_markup = await array2inline(buttons_arr, adding=is_win)
+    reply_markup = await array2inline(buttons_arr, mode=mode, adding=is_win)
     if nospace or is_win:
         reply_markup.inline_keyboard.append(
             [InlineKeyboardButton(text='Сыграем ещё?',
