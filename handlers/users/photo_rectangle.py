@@ -7,6 +7,7 @@ import uuid
 
 from aiogram import types
 from aiogram.dispatcher.filters import Command
+from aiogram.types import InputFile
 
 from loader import dp
 from utils.misc.photos.rectangles import process
@@ -39,8 +40,10 @@ async def photo_rectangles(message: types.Message):
     logging.debug(f'Saved {filename}')
 
     output_file_path, name = await process(str(path), random_palette=True)
+    logging.debug(f'output: {output_file_path}')
+
     await message.reply_photo(
-        photo=output_file_path,
+        photo=InputFile(output_file_path),
         caption=f"Было использовано {name}"
     )
     await asyncio.sleep(5)
