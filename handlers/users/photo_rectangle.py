@@ -6,11 +6,12 @@ import pathlib
 import uuid
 
 from aiogram import types
-from aiogram.dispatcher.filters import Command
+from aiogram.dispatcher.filters import Command, Text
 from aiogram.types import InputFile, InputMediaPhoto
 
-from keyboards.inline.rectangles_inline import keyboard_inline
-from loader import dp
+from keyboards.inline.rectangles_inline import keyboard_inline, callback_data
+from loader import dp, bot
+from utils.db_api.quick_commands import add_rectangle_img, select_rectangle_img_by_id
 from utils.misc.photos.rectangles import process
 
 NAME_FORMAT = '{0}_{1}_{2}.jpg'
@@ -33,12 +34,12 @@ async def photo_rectangles(message: types.Message):
         )
         return
     path, output_file_path, name = await rectangle_photo(message)
-
+    id = await add_rectangle_img(image_id=message.reply_to_message.photo[-1].file_id)
     await message.reply_photo(
         photo=InputFile(output_file_path),
         caption=f"Было использовано {name}"
-        # ,
-        # reply_markup=keyboard_inline
+        ,
+        reply_markup=keyboard_inline(id=id)
     )
     await asyncio.sleep(5)
     os.remove(path)
@@ -47,9 +48,10 @@ async def photo_rectangles(message: types.Message):
     logging.debug(f'{output_file_path} removed')
 
 
-@dp.callback_query_handler(text='try_rectangles_button')
+@dp.callback_query_handler(Text(contains='try_rectangles_button'))
 async def photo_rectangles_inline(call: types.CallbackQuery):
     logging.debug(f"call: {call}")
+    c_data = callback_data.parse(call.data)
     logging.debug(f"call.message.reply_to_message : {call.message.reply_to_message}")
     if not call.message.reply_to_message:
         await call.message.edit_reply_markup(
@@ -68,11 +70,14 @@ async def photo_rectangles_inline(call: types.CallbackQuery):
             text='Удалено сообщение с фотографией. Запустите весь процесс заново'
         )
         return
-    path, output_file_path, name = await rectangle_photo(call.message.reply_to_message.reply_to_message)
+    id = int(c_data.get("id"))
+    rectangle_img = await select_rectangle_img_by_id(id=id)
+    file_id = rectangle_img.image_id
+    path, output_file_path, name = await rectangle_photo_file_id(file_id=file_id, id=call.from_user.id)
     await call.message.edit_media(
         media=InputMediaPhoto(media=InputFile(output_file_path),
                               caption=f'Было использовано {name}'),
-        reply_markup=keyboard_inline
+        reply_markup=keyboard_inline(id)
     )
 
     await asyncio.sleep(5)
@@ -89,6 +94,20 @@ async def rectangle_photo(message: types.Message) -> (str, str, str):
     path = ROOT_PATH.joinpath(f'temp_images/{filename}').resolve().absolute()
     logging.debug(f'Path determined as {path}')
     await message.reply_to_message.photo[-1].download(destination_file=path)
+    logging.debug(f'Saved {filename}')
+
+    output_file_path, name = await process(str(path), random_palette=True)
+    logging.debug(f'output: {output_file_path}')
+    return path, output_file_path, name
+
+
+async def rectangle_photo_file_id(file_id, id) -> (str, str, str):
+    filename = NAME_FORMAT.format(str(id),
+                                  hash(uuid.uuid4()),
+                                  datetime.datetime.now().isoformat())
+    path = ROOT_PATH.joinpath(f'temp_images/{filename}').resolve().absolute()
+    logging.debug(f'Path determined as {path}')
+    await bot.download_file_by_id(file_id, destination=path)
     logging.debug(f'Saved {filename}')
 
     output_file_path, name = await process(str(path), random_palette=True)

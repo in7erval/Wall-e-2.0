@@ -1,9 +1,14 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.utils.callback_data import CallbackData
 
-keyboard_inline = InlineKeyboardMarkup(
+keyboard_inline = lambda id: InlineKeyboardMarkup(
     inline_keyboard=[
         [
-            InlineKeyboardButton(text="Попробовать ещё раз", callback_data="try_rectangles_button")
+            InlineKeyboardButton(text="Попробовать ещё раз",
+                                 callback_data=callback_data.new(name="try_rectangles_button", id=id))
         ]
     ]
 )
+
+
+callback_data = CallbackData("name", "id")

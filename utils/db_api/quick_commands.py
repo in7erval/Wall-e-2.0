@@ -5,6 +5,7 @@ from asyncpg import UniqueViolationError
 from utils.db_api.db_gino import db
 from utils.db_api.schemas.inline_photos import InlinePhoto
 from utils.db_api.schemas.message import Message
+from utils.db_api.schemas.rectangles_img import RectanglesImg
 from utils.db_api.schemas.user import User
 
 
@@ -99,3 +100,19 @@ async def select_all_queries() -> set:
 async def select_photos_by_query(query_text: str) -> list:
     photos = await InlinePhoto.query.where(InlinePhoto.query_text == query_text).gino.all()
     return photos
+
+
+# ------------- RectanglesImg ------------
+
+async def select_rectangle_img_by_id(id):
+    rectangle_img = await RectanglesImg.query.where(RectanglesImg.id == id).gino.first()
+    return rectangle_img
+
+
+async def add_rectangle_img(image_id) -> int:
+    try:
+        rectangle_img = RectanglesImg(image_id=image_id)
+        await rectangle_img.create()
+        return rectangle_img.id
+    except UniqueViolationError:
+        pass
