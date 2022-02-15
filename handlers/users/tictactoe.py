@@ -6,7 +6,7 @@ from aiogram import types
 from aiogram.dispatcher.filters import Command, Text
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from keyboards.inline.tictactoe_inline import keyboard_inline, callback_data, SPACE_CHAR
+from keyboards.inline.tictactoe_inline import keyboard_inline, callback_data, SPACE_CHAR, keyboard_init
 from loader import dp
 
 SPACE = 0
@@ -18,24 +18,44 @@ ZERO_CHAR = '⭕️'
 TURN_ZERO = f"Ход {ZERO_CHAR}"
 TURN_KREST = f"Ход {KREST_CHAR}"
 
-auto_turn_flag = True
-
 
 @dp.message_handler(Text(equals="Крестики-нолики"))
 @dp.message_handler(Command('tictactoe'))
 async def tictactoe_init(message: types.Message):
     await message.answer(
-        text=TURN_KREST,
-        reply_markup=keyboard_inline
+        text='Выбери режим:',
+        reply_markup=keyboard_init
     )
+    # await message.answer(
+    #     text=TURN_KREST,
+    #     reply_markup=keyboard_inline
+    # )
     if message.text == "Крестики-нолики":
         await message.delete()
+
+
+@dp.callback_query_handler(Text(contains="tictactoe_init"))
+async def tictactoe_start(call: types.CallbackQuery):
+    c_data = callback_data.parse(call.data)
+    mode = c_data.get('mode')
+    turn = c_data.get('turn')
+    if mode == 'pve':
+        await call.message.edit_text(
+            text=TURN_KREST if turn == 'krest' else TURN_ZERO,
+            reply_markup=keyboard_inline(mode)
+        )
+    else:
+        await call.message.edit_text(
+            text=TURN_KREST,
+            reply_markup=keyboard_inline(mode)
+        )
 
 
 @dp.callback_query_handler(Text(contains='tictactoe_item'))
 async def tictactoe_turn(call: types.CallbackQuery):
     c_data = callback_data.parse(call.data)
     number = int(c_data.get("number"))
+    auto_turn_flag = c_data.get("mode") == 'pve'
     reply_markup = call.message.reply_markup
     prev_text = call.message.text
 
@@ -157,4 +177,3 @@ async def check_state(buttons_arr: list, text: str):
         who_wins = KREST_CHAR if who_wins == KREST else ZERO_CHAR
         text = f'Выиграл {who_wins}!' if is_win else f'Ничья!'
     return is_win, who_wins, nospace, text
-

@@ -5,36 +5,55 @@ from aiogram.utils.callback_data import CallbackData
 SPACE_CHAR = ' '
 
 
-callback_data = CallbackData("tictactoe_item", "number")
+callback_data = CallbackData("tictactoe_item", "number", 'mode')
 
-keyboard_inline = InlineKeyboardMarkup(
+keyboard_inline = lambda mode: InlineKeyboardMarkup(
     row_width=3,
     inline_keyboard=[
         [
             InlineKeyboardButton(text=SPACE_CHAR,
-                                 callback_data=callback_data.new(number=0)),
+                                 callback_data=callback_data.new(number=0, mode=mode)),
             InlineKeyboardButton(text=SPACE_CHAR,
-                                 callback_data=callback_data.new(number=1)),
+                                 callback_data=callback_data.new(number=1, mode=mode)),
             InlineKeyboardButton(text=SPACE_CHAR,
-                                 callback_data=callback_data.new(number=2)),
+                                 callback_data=callback_data.new(number=2, mode=mode)),
         ],
         [
             InlineKeyboardButton(text=SPACE_CHAR,
-                                 callback_data=callback_data.new(number=3)),
+                                 callback_data=callback_data.new(number=3, mode=mode)),
             InlineKeyboardButton(text=SPACE_CHAR,
-                                 callback_data=callback_data.new(number=4)),
+                                 callback_data=callback_data.new(number=4, mode=mode)),
             InlineKeyboardButton(text=SPACE_CHAR,
-                                 callback_data=callback_data.new(number=5)),
+                                 callback_data=callback_data.new(number=5, mode=mode)),
         ],
         [
             InlineKeyboardButton(text=SPACE_CHAR,
-                                 callback_data=callback_data.new(number=6)),
+                                 callback_data=callback_data.new(number=6, mode=mode)),
             InlineKeyboardButton(text=SPACE_CHAR,
-                                 callback_data=callback_data.new(number=7)),
+                                 callback_data=callback_data.new(number=7, mode=mode)),
             InlineKeyboardButton(text=SPACE_CHAR,
-                                 callback_data=callback_data.new(number=8)),
+                                 callback_data=callback_data.new(number=8, mode=mode)),
         ],
 
+    ]
+
+)
+
+callback_data_init = CallbackData("tictactoe_init", "mode", "turn")
+
+keyboard_init = InlineKeyboardMarkup(
+    row_width=2,
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text='С другом',
+                                 callback_data=callback_data_init.new(mode='pvp', turn='0'))
+        ],
+        [
+            InlineKeyboardButton(text='За ❌ с компьютером',
+                                 callback_data=callback_data_init.new(mode='pve', turn='krest')),
+            InlineKeyboardButton(text='За ⭕️ с компьютером',
+                                 callback_data=callback_data_init.new(mode='pve', turn='zero'))
+        ]
     ]
 
 )
