@@ -7,10 +7,10 @@ import uuid
 
 from aiogram import types
 from aiogram.dispatcher.filters import Command
-from aiogram.types import InputFile, InputMedia, InputMediaPhoto
+from aiogram.types import InputFile, InputMediaPhoto
 
 from keyboards.inline.rectangles_inline import keyboard_inline
-from loader import dp, bot
+from loader import dp
 from utils.misc.photos.rectangles import process
 
 NAME_FORMAT = '{0}_{1}_{2}.jpg'
