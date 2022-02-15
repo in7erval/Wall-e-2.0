@@ -34,10 +34,6 @@ async def photo_rectangles(message: types.Message):
         return
     path, output_file_path, name = await rectangle_photo(message)
 
-    await message.reply_media_group(
-        media=[InputFile(path), InputFile(output_file_path)],
-    )
-
     await message.reply_photo(
         photo=InputFile(output_file_path),
         caption=f"Было использовано {name}",
@@ -51,7 +47,7 @@ async def photo_rectangles(message: types.Message):
 
 
 @dp.callback_query_handler(text='try_rectangles_button')
-async def generate_random_inline(call: types.CallbackQuery):
+async def photo_rectangles_inline(call: types.CallbackQuery):
     if not call.message.reply_to_message:
         await call.message.edit_text(
             text='Удалено сообщение с командой. Запустите весь процесс заново',
