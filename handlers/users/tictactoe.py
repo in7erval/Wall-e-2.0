@@ -17,12 +17,15 @@ TURN_ZERO = f"Ход {ZERO_CHAR}"
 TURN_KREST = f"Ход {KREST_CHAR}"
 
 
+@dp.message_handler(Text(equals="Крестики-нолики"))
 @dp.message_handler(Command('tictactoe'))
 async def tictactoe_init(message: types.Message):
     await message.answer(
         text=TURN_KREST,
         reply_markup=keyboard_inline
     )
+    if message.text == "Крестики-нолики":
+        await message.delete()
 
 
 @dp.callback_query_handler(Text(contains='tictactoe_item'))
@@ -49,7 +52,7 @@ async def tictactoe_turn(call: types.CallbackQuery):
             who_wins = KREST_CHAR if who_wins == KREST else ZERO_CHAR
             text = f'Выиграл {who_wins}!' if is_win else f'Ничья!'
         reply_markup = await array2inline(buttons_arr, adding=is_win)
-        if nospace:
+        if nospace or is_win:
             reply_markup.inline_keyboard.append(
                 [InlineKeyboardButton(text='Сыграем ещё?',
                                       callback_data='tictactoe_new')]

@@ -8,7 +8,8 @@ keyboard = ReplyKeyboardMarkup(
         ],
         [
             KeyboardButton(text="Бутерброд 🥪"),
-            KeyboardButton(text="🎲")
+            KeyboardButton(text="🎲"),
+            KeyboardButton(text="Крестики-нолики")
         ],
         [
             KeyboardButton(text='Клавиатура для генерации'),
