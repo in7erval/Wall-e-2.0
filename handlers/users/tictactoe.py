@@ -30,42 +30,43 @@ async def tictactoe_turn(call: types.CallbackQuery):
     c_data = callback_data.parse(call.data)
     number = int(c_data.get("number"))
     reply_markup = call.message.reply_markup
+    prev_text = call.message.text
 
     logging.debug(f"number: {number}")
     logging.debug(f"reply_markup: {reply_markup}")
     logging.debug(f"reply_markup.inline_keyboard: {reply_markup.inline_keyboard}")
+    logging.debug(f"prev_text: {prev_text}")
 
     buttons_arr = await inline2array(reply_markup.inline_keyboard)
-    prev_text = call.message.text
+    logging.debug(f"buttons_arr: {buttons_arr}")
+
     i, j = number // 3, number % 3
-    button = buttons_arr[i][j]
-    if button == SPACE:
+    logging.debug(f"buttons_arr[{i}][{j}] = {buttons_arr[i][j]}")
+
+    if buttons_arr[i][j] == SPACE:
+        logging.debug("SPACE")
         if prev_text == TURN_ZERO:
             buttons_arr[i][j] = ZERO
             text = TURN_KREST
         else:
             buttons_arr[i][j] = KREST
             text = TURN_ZERO
-        if await check_no_space(buttons_arr):
+        nospace = await check_no_space(buttons_arr)
+        if nospace:
+            logging.debug("NO SPACE AFTER_TURN")
             is_win, who_wins = await check_win(buttons_arr)
-            if is_win:
-                await call.message.edit_text(f'Выиграл {KREST_CHAR if who_wins == KREST else ZERO_CHAR}!')
-            else:
-                await call.message.edit_text(f'Ничья!')
-            await call.message.edit_reply_markup(
-                reply_markup=InlineKeyboardMarkup(row_width=1,
-                                                  inline_keyboard=[
-                                                      [InlineKeyboardButton(text='Сыграем ещё?',
-                                                                            callback_data='tictactoe_new')]
-                                                  ])
+            who_wins = KREST_CHAR if who_wins == KREST else ZERO_CHAR
+            text = f'Выиграл {who_wins}!' if is_win else f'Ничья!'
+        await call.message.edit_text(text)
+        reply_markup = await array2inline(buttons_arr)
+        if nospace:
+            reply_markup.inline_keyboard.append(
+                [InlineKeyboardButton(text='Сыграем ещё?',
+                                      callback_data='tictactoe_new')]
             )
-        else:
-            await call.message.edit_text(
-                text
-            )
-            await call.message.edit_reply_markup(
-                reply_markup=await array2inline(buttons_arr)
-            )
+        await call.message.edit_reply_markup(
+            reply_markup=reply_markup
+        )
 
 
 @dp.callback_query_handler(Text(contains='tictactoe_new'))
