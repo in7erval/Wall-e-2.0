@@ -6,7 +6,8 @@ from aiogram import types
 from aiogram.dispatcher.filters import Command, Text
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from keyboards.inline.tictactoe_inline import keyboard_inline, callback_data, SPACE_CHAR, keyboard_init
+from keyboards.inline.tictactoe_inline import keyboard_inline, callback_data, SPACE_CHAR, keyboard_init, \
+    callback_data_init
 from loader import dp
 from utils.misc import rate_limit
 
@@ -31,10 +32,9 @@ async def tictactoe_init(message: types.Message):
         await message.delete()
 
 
-@rate_limit(limit=10)
 @dp.callback_query_handler(Text(contains="tictactoe_init"))
 async def tictactoe_start(call: types.CallbackQuery):
-    c_data = callback_data.parse(call.data)
+    c_data = callback_data_init.parse(call.data)
     mode = c_data.get('mode')
     turn = c_data.get('turn')
     await call.message.edit_text(

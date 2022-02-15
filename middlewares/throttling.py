@@ -38,9 +38,9 @@ class ThrottlingMiddleware(BaseMiddleware):
                                throttled: Throttled, dispatcher: Dispatcher, key: str):
         msg = target.message if isinstance(target, types.CallbackQuery) else target
         delta = throttled.rate - throttled.delta
-        if throttled.exceeded_count == 2:
+        if throttled.exceeded_count == 10:
             await msg.reply("Слишком часто!")
-        elif throttled.exceeded_count == 3:
+        elif throttled.exceeded_count == 11:
             await msg.reply(f"Всё. Больше не отвечу, пока не пройдет {delta} секунд")
             await asyncio.sleep(delta)
             thr = await dispatcher.check_key(key)
