@@ -61,7 +61,7 @@ async def tictactoe_turn(call: types.CallbackQuery):
 
 
 @dp.callback_query_handler(Text(contains='tictactoe_new'))
-async def tictactoe_turn(call: types.CallbackQuery):
+async def tictactoe_new(call: types.CallbackQuery):
     await call.message.edit_text(TURN_KREST, reply_markup=keyboard_inline)
 
 
