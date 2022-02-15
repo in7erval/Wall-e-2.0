@@ -53,7 +53,8 @@ async def tictactoe_turn(call: types.CallbackQuery):
             who_wins = KREST_CHAR if who_wins == KREST else ZERO_CHAR
             text = f'Выиграл {who_wins}!' if is_win else f'Ничья!'
         else:
-            await auto_turn(buttons_arr, prev_text == TURN_KREST)
+            await auto_turn(buttons_arr, prev_text == TURN_ZERO)
+            text = TURN_KREST if text == TURN_ZERO else TURN_ZERO
             is_win, who_wins = await check_win(buttons_arr)
             nospace = await check_no_space(buttons_arr)
             if nospace or is_win:
@@ -65,7 +66,7 @@ async def tictactoe_turn(call: types.CallbackQuery):
                 [InlineKeyboardButton(text='Сыграем ещё?',
                                       callback_data='tictactoe_new')]
             )
-        await call.message.edit_text(text, reply_markup=reply_markup)
+        await call.message.edit_text(text, reply_markup=reply_markup)  # todo: fix prev_text after adding auto_turn bool
 
 
 @dp.callback_query_handler(Text(contains='tictactoe_new'))
