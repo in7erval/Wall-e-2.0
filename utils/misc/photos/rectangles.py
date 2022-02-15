@@ -2,7 +2,7 @@ import pathlib
 import random
 from pathlib import Path
 
-import cv2
+from skimage import io
 import numpy as np
 
 
@@ -116,9 +116,7 @@ DIR = "temp_images"
 async def process(img_name: str, rectangle_color: tuple = (255, 255, 255), random_color: bool = False,
             palette_name: str = None,
             random_palette: bool = False) -> (Path, str):
-    img = cv2.imread(img_name)
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    # img = cv2.resize(img, (1000, 1250))
+    img = io.imread(img_name)
     count_dots_hor = 10
     count_dors_vert = 10
     delta_row = img.shape[0] / count_dots_hor
@@ -146,5 +144,5 @@ async def process(img_name: str, rectangle_color: tuple = (255, 255, 255), rando
                                      (int(i * delta_row), int(j * delta_column)),
                                      width_square, color=random.choice(colors))
     fname = ROOT_PATH.joinpath(f'{DIR}/{img_name.split(".")[0]}_output.jpg')
-    cv2.imwrite(fname, cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
+    io.imsave(str(fname), img)
     return fname, palette_key if palette_key else (color_key if color_key else "")

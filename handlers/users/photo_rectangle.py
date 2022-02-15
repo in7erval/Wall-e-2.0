@@ -1,5 +1,7 @@
+import asyncio
 import datetime
 import logging
+import os
 import pathlib
 import uuid
 
@@ -32,15 +34,21 @@ async def photo_rectangles(message: types.Message):
                                   hash(uuid.uuid4()),
                                   datetime.datetime.now().isoformat())
     path = ROOT_PATH.joinpath(f'temp_images/{filename}').resolve().absolute()
-    logging.info(f'Path determined as {path}')
-    await message.reply_to_message.photo[-1].download(destination_file=filename)
-    logging.info(f'Saved {filename}')
+    logging.debug(f'Path determined as {path}')
+    await message.reply_to_message.photo[-1].download(destination_file=path)
+    logging.debug(f'Saved {filename}')
 
     output_file_path, name = await process(str(path), random_palette=True)
     await message.reply_photo(
         photo=output_file_path,
         caption=f"Было использовано {name}"
     )
+    await asyncio.sleep(5)
+    os.remove(path)
+    logging.debug(f'{path} removed')
+    os.remove(output_file_path)
+    logging.debug(f'{output_file_path} removed')
+
 
 
 
