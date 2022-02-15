@@ -32,32 +32,23 @@ async def tictactoe_turn(call: types.CallbackQuery):
     reply_markup = call.message.reply_markup
     prev_text = call.message.text
 
-    logging.debug(f"number: {number}")
-    logging.debug(f"reply_markup: {reply_markup}")
-    logging.debug(f"reply_markup.inline_keyboard: {reply_markup.inline_keyboard}")
-    logging.debug(f"prev_text: {prev_text}")
-
     buttons_arr = await inline2array(reply_markup.inline_keyboard)
-    logging.debug(f"buttons_arr: {buttons_arr}")
 
     i, j = number // 3, number % 3
-    logging.debug(f"buttons_arr[{i}][{j}] = {buttons_arr[i][j]}")
 
     if buttons_arr[i][j] == SPACE:
-        logging.debug("SPACE")
         if prev_text == TURN_ZERO:
             buttons_arr[i][j] = ZERO
             text = TURN_KREST
         else:
             buttons_arr[i][j] = KREST
             text = TURN_ZERO
+        is_win, who_wins = await check_win(buttons_arr)
         nospace = await check_no_space(buttons_arr)
-        if nospace:
-            logging.debug("NO SPACE AFTER_TURN")
+        if nospace or is_win:
             is_win, who_wins = await check_win(buttons_arr)
             who_wins = KREST_CHAR if who_wins == KREST else ZERO_CHAR
             text = f'Выиграл {who_wins}!' if is_win else f'Ничья!'
-        await call.message.edit_text(text)
         reply_markup = await array2inline(buttons_arr)
         if nospace:
             reply_markup.inline_keyboard.append(
@@ -67,6 +58,7 @@ async def tictactoe_turn(call: types.CallbackQuery):
         await call.message.edit_reply_markup(
             reply_markup=reply_markup
         )
+        await call.message.edit_text(text)
 
 
 @dp.callback_query_handler(Text(contains='tictactoe_new'))
@@ -92,7 +84,7 @@ async def inline2array(buttons: []):
     return buttons_arr
 
 
-async def array2inline(buttons_arr: []):
+async def array2inline(buttons_arr: [], adding: bool = False):
     inline_keyboard = []
     for i, button_row in enumerate(buttons_arr):
         inline_keyboard_row = []
@@ -100,7 +92,8 @@ async def array2inline(buttons_arr: []):
             text = SPACE_CHAR if button == SPACE else (KREST_CHAR if button == KREST else ZERO_CHAR)
             number = i * 3 + j
             inline_keyboard_row.append(InlineKeyboardButton(text=text,
-                                                            callback_data=callback_data.new(number=number)))
+                                                            callback_data=callback_data.new(
+                                                                number=number) if not adding else 'finish'))
         inline_keyboard.append(inline_keyboard_row)
     return InlineKeyboardMarkup(row_width=3, inline_keyboard=inline_keyboard)
 
