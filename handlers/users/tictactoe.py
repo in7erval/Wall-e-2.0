@@ -1,4 +1,5 @@
 import logging
+import random
 
 from aiogram import types
 from aiogram.dispatcher.filters import Command, Text
@@ -51,6 +52,13 @@ async def tictactoe_turn(call: types.CallbackQuery):
         if nospace or is_win:
             who_wins = KREST_CHAR if who_wins == KREST else ZERO_CHAR
             text = f'Выиграл {who_wins}!' if is_win else f'Ничья!'
+        else:
+            await auto_turn(buttons_arr, prev_text == TURN_KREST)
+            is_win, who_wins = await check_win(buttons_arr)
+            nospace = await check_no_space(buttons_arr)
+            if nospace or is_win:
+                who_wins = KREST_CHAR if who_wins == KREST else ZERO_CHAR
+                text = f'Выиграл {who_wins}!' if is_win else f'Ничья!'
         reply_markup = await array2inline(buttons_arr, adding=is_win)
         if nospace or is_win:
             reply_markup.inline_keyboard.append(
@@ -117,3 +125,16 @@ async def check_no_space(arr: []):
             if elem == SPACE:
                 return False
     return True
+
+
+async def auto_turn(arr: [], krest_turn: bool):
+    spaces = []
+    for i, row in enumerate(arr):
+        for j, elem in enumerate(row):
+            if elem == SPACE:
+                spaces.append((i, j))
+    i, j = random.choice(spaces)
+    if krest_turn:
+        arr[i][j] = KREST
+    else:
+        arr[i][j] = ZERO
