@@ -105,12 +105,12 @@ async def check_win(arr: []):
     # check columns
     for i in range(3):
         if arr[0][i] == arr[1][i] == arr[2][i] != SPACE:
-            return True, arr[i][0]
+            return True, arr[0][i]
     # check diag
     if arr[0][0] == arr[1][1] == arr[2][2] != SPACE:
         return True, arr[0][0]
     if arr[0][2] == arr[1][1] == arr[2][0] != SPACE:
-        return True, arr[0][0]
+        return True, arr[0][2]
     return False, None
 
 
@@ -142,11 +142,12 @@ async def auto_turn_logic(arr: [], turn_zero: bool):
         for j, elem in enumerate(row):
             if elem == SPACE:
                 spaces.append((i, j))
-    i, j = random.choice(spaces)
-    if turn_zero:
-        arr[i][j] = ZERO
-    else:
-        arr[i][j] = KREST
+    if len(spaces) != 0:
+        i, j = random.choice(spaces)
+        if turn_zero:
+            arr[i][j] = ZERO
+        else:
+            arr[i][j] = KREST
 
 
 async def check_state(buttons_arr: list, text: str):
