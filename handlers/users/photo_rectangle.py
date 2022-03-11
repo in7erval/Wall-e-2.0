@@ -28,7 +28,7 @@ async def photo_rectangles(message: types.Message):
             text='Ответь на сообщение с фотографией для обработки'
         )
         return
-    if not message.reply_to_message.photo or not message.reply_to_message.document:
+    if not message.reply_to_message.photo and not message.reply_to_message.document:
         await message.reply(
             text='В отвеченном сообщении нет фотографии'
         )
