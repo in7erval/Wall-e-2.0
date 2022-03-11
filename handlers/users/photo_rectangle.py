@@ -7,7 +7,7 @@ import uuid
 
 from aiogram import types
 from aiogram.dispatcher.filters import Command, Text
-from aiogram.types import InputFile, InputMediaPhoto
+from aiogram.types import InputFile, InputMediaPhoto, InputMediaDocument
 
 from keyboards.inline.rectangles_inline import keyboard_inline, callback_data
 from loader import dp, bot
@@ -28,7 +28,7 @@ async def photo_rectangles(message: types.Message):
             text='Ответь на сообщение с фотографией для обработки'
         )
         return
-    if not message.reply_to_message.photo and not message.reply_to_message.document:
+    if not message.reply_to_message.photo or not message.reply_to_message.document:
         await message.reply(
             text='В отвеченном сообщении нет фотографии'
         )
@@ -75,12 +75,16 @@ async def photo_rectangles_inline(call: types.CallbackQuery):
     rectangle_img = await select_rectangle_img_by_id(id=id)
     file_id = rectangle_img.image_id
     path, output_file_path, name = await rectangle_photo_file_id(file_id=file_id, id=call.from_user.id)
+    if call.message.photo:
+        media = InputMediaPhoto(media=InputFile(output_file_path),
+                                caption=f'Было использовано {name}')
+    else:
+        media = InputMediaDocument(media=InputFile(output_file_path, filename="YouArePerfect.jpg"),
+                                   caption=f'Было использовано {name}')
     await call.message.edit_media(
-        media=InputMediaPhoto(media=InputFile(output_file_path),
-                              caption=f'Было использовано {name}'),
+        media=media,
         reply_markup=keyboard_inline(id)
     )
-
     await asyncio.sleep(5)
     os.remove(path)
     logging.debug(f'{path} removed')
