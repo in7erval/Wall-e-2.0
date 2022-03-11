@@ -33,14 +33,27 @@ async def photo_rectangles(message: types.Message):
             text='В отвеченном сообщении нет фотографии'
         )
         return
+    if not message.reply_to_message.document:
+        await message.reply(
+            text='В отвеченном сообщении нет фотографии'
+        )
     path, output_file_path, name = await rectangle_photo(message)
-    id = await add_rectangle_img(image_id=message.reply_to_message.photo[-1].file_id)
-    await message.reply_photo(
-        photo=InputFile(output_file_path),
-        caption=f"Было использовано {name}"
-        ,
-        reply_markup=keyboard_inline(id=id)
-    )
+    if message.reply_to_message.photo:
+        id = await add_rectangle_img(image_id=message.reply_to_message.photo[-1].file_id)
+        await message.reply_photo(
+            photo=InputFile(output_file_path),
+            caption=f"Было использовано {name}"
+            ,
+            reply_markup=keyboard_inline(id=id)
+        )
+    else:
+        id = await add_rectangle_img(image_id=message.reply_to_message.document.file_id)
+        await message.reply_document(
+            document=InputFile(output_file_path),
+            caption=f"Было использовано {name}"
+            ,
+            reply_markup=keyboard_inline(id=id)
+        )
     await asyncio.sleep(5)
     os.remove(path)
     logging.debug(f'{path} removed')
@@ -85,7 +98,10 @@ async def rectangle_photo(message: types.Message) -> (str, str, str):
                                   datetime.datetime.now().isoformat())
     path = ROOT_PATH.joinpath(f'temp_images/{filename}').resolve().absolute()
     logging.debug(f'Path determined as {path}')
-    await message.reply_to_message.photo[-1].download(destination_file=path)
+    if message.reply_to_message.photo:
+        await message.reply_to_message.photo[-1].download(destination_file=path)
+    else:
+        await message.reply_to_message.document.download(destination_file=path)
     logging.debug(f'Saved {filename}')
 
     output_file_path, name = await process(str(path), random_palette=True)
