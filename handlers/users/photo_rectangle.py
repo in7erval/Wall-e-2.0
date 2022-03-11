@@ -28,15 +28,11 @@ async def photo_rectangles(message: types.Message):
             text='Ответь на сообщение с фотографией для обработки'
         )
         return
-    if not message.reply_to_message.photo:
+    if not message.reply_to_message.photo and not message.reply_to_message.document:
         await message.reply(
             text='В отвеченном сообщении нет фотографии'
         )
         return
-    if not message.reply_to_message.document:
-        await message.reply(
-            text='В отвеченном сообщении нет фотографии'
-        )
     path, output_file_path, name = await rectangle_photo(message)
     if message.reply_to_message.photo:
         id = await add_rectangle_img(image_id=message.reply_to_message.photo[-1].file_id)
