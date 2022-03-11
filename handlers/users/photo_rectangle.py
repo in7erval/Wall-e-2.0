@@ -17,6 +17,7 @@ from utils.misc.photos.rectangles import process
 NAME_FORMAT = '{0}_{1}_{2}.jpg'
 
 DIR = 'temp_images'
+DEFAULT_FNAME = "YouArePerfect.jpg"
 
 ROOT_PATH = pathlib.Path(__file__).parent.resolve().parent.resolve().parent.resolve()
 
@@ -37,17 +38,15 @@ async def photo_rectangles(message: types.Message):
     if message.reply_to_message.photo:
         id = await add_rectangle_img(image_id=message.reply_to_message.photo[-1].file_id)
         await message.reply_photo(
-            photo=InputFile(output_file_path),
-            caption=f"Было использовано {name}"
-            ,
+            photo=InputFile(output_file_path, filename=DEFAULT_FNAME),
+            caption=f"Было использовано {name}",
             reply_markup=keyboard_inline(id=id)
         )
     else:
         id = await add_rectangle_img(image_id=message.reply_to_message.document.file_id)
         await message.reply_document(
-            document=InputFile(output_file_path),
-            caption=f"Было использовано {name}"
-            ,
+            document=InputFile(output_file_path, filename=DEFAULT_FNAME),
+            caption=f"Было использовано {name}",
             reply_markup=keyboard_inline(id=id)
         )
     await asyncio.sleep(5)
@@ -79,7 +78,7 @@ async def photo_rectangles_inline(call: types.CallbackQuery):
         media = InputMediaPhoto(media=InputFile(output_file_path),
                                 caption=f'Было использовано {name}')
     else:
-        media = InputMediaDocument(media=InputFile(output_file_path, filename="YouArePerfect.jpg"),
+        media = InputMediaDocument(media=InputFile(output_file_path, filename=DEFAULT_FNAME),
                                    caption=f'Было использовано {name}')
     await call.message.edit_media(
         media=media,
