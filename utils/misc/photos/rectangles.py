@@ -113,10 +113,10 @@ async def process(img_name: str, rectangle_color: tuple = (255, 255, 255), rando
             random_palette: bool = False) -> (Path, str):
     img = io.imread(img_name)
     count_dots_hor = 10
-    count_dors_vert = 10
+    count_dots_vert = 10
     delta_row = img.shape[0] / count_dots_hor
-    delta_column = img.shape[1] / count_dors_vert
-    width_square = int(max(delta_row * 0.75, delta_column * 0.75))
+    delta_column = img.shape[1] / count_dots_vert
+    width_square = int(min(delta_row * 0.75, delta_column * 0.75))
     # for j in range(3):
     #     for i in range(img.shape[1] // 2):
     #         img[:, i * j % img.shape[1]] = img[:, i + img.shape[1] // 2]
@@ -133,7 +133,7 @@ async def process(img_name: str, rectangle_color: tuple = (255, 255, 255), rando
     else:
         colors = [rectangle_color]
     for i in range(count_dots_hor):
-        for j in range(count_dors_vert):
+        for j in range(count_dots_vert):
             if random.random() > 0.5:
                 draw_rectangle_delta(img,
                                      (int(i * delta_row), int(j * delta_column)),
