@@ -29,6 +29,7 @@ async def set_default_commands(dp):
             # types.BotCommand('unregister_inline_photo', 'Удалить инлайн-фото из запросов'),
             types.BotCommand("del", "Удалить данное сообщение и reply на другое"),
             types.BotCommand('tts', 'Озвучить сообщение'),
-            types.BotCommand('photo_rectangles', 'Преобразовать фото')
+            types.BotCommand('photo_rectangles', 'Преобразовать фото'),
+            types.BotCommand('simplex', 'Задача нахождения min/max функции с учетом ограничений')
         ]
     )

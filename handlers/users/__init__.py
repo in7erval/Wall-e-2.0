@@ -15,3 +15,4 @@ from . import secrets
 from . import default_keyboard
 from . import photo_rectangle
 from . import tictactoe
+from . import simplex
