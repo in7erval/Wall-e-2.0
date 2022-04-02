@@ -154,10 +154,14 @@ async def solve_equations(message: types.Message, state: FSMContext):
         temp = open(f"answer{message.from_user.id}.txt", 'w+')
         temp.write(answer)
         temp.close()
-        await message.answer_document(document=InputFile(f"answer{message.from_user.id}.txt"),
-                                      caption='Пришёл ответ:\n'
-                                              f'{hcode(answer)}\n'
-                                              f'Для лучшей читаемости можно воспользоваться прикреплённым файлом.')
+        msg = ('Пришёл ответ:\n'
+               f'{hcode(answer)}\n'
+               f'Для лучшей читаемости можно воспользоваться файлом ниже.')
+        if len(msg) <= 4000:
+            await message.answer('Пришёл ответ:\n'
+                                 f'{hcode(answer)}\n'
+                                 f'Для лучшей читаемости можно воспользоваться файлом ниже.')
+        await message.answer_document(document=InputFile(f"answer{message.from_user.id}.txt"))
         await state.reset_state(with_data=True)
 
 
