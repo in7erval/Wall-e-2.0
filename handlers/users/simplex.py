@@ -72,7 +72,7 @@ async def enter_num_equations(message: types.Message, state: FSMContext):
         await Simplex.Equations.set()
 
 
-@dp.message_handler(states=Simplex.Equations)
+@dp.message_handler(state=Simplex.Equations)
 async def enter_equations(message: types.Message, state: FSMContext):
     equations = message.text.split('\n')
     check_passed = True
