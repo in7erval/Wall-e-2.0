@@ -67,7 +67,7 @@ async def enter_num_equations(message: types.Message, state: FSMContext):
         await message.answer('Введённое значение не число, попробуй ещё раз')
     else:
         async with state.proxy() as data:
-            data['num_equation'] = num_eq
+            data['num_equations'] = num_eq
         await message.answer('Введи коэффициенты и знаки для уравнений.\n'
                              'В каждой строке одно уравнение!\n'
                              'Пример: для "x_1 + 2*x_2 + x_3 = 4" введите "1 2 1 = 4".')
