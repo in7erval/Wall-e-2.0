@@ -46,6 +46,7 @@ async def stop_or_variables(message: types.Message, state: FSMContext):
         await message.answer('Введи количество переменных:')
         await Simplex.NumVariables.set()
 
+
 @dp.message_handler(state=Simplex.NumVariables)
 async def enter_num_variables(message: types.Message, state: FSMContext):
     num_var = message.text
@@ -67,9 +68,8 @@ async def enter_num_equations(message: types.Message, state: FSMContext):
         async with state.proxy() as data:
             data['num_equation'] = num_eq
         await message.answer('Введи коэффициенты и знаки для уравнений.\n'
-                             'Считать ">" как ">=" и "<" как "<=". В каждой строке -- одно уравнение.\n'
-                             'Пример: для "X_1 + 2*X_3 + X_3 = 4" введите "1 2 1 = 4".',
-                             parse_mode='Markdown')
+                             'Считать > как >= и < как <=. В каждой строке -- одно уравнение.\n'
+                             f'Пример: для {hbold("X_1 + 2*X_3 + X_3 = 4")} введите {hbold("1 2 1 = 4")}.')
         await Simplex.Equations.set()
 
 
@@ -79,21 +79,18 @@ async def enter_equations(message: types.Message, state: FSMContext):
     check_passed = True
     for i, equation in enumerate(equations):
         if equation.count('=') != 1:
-            await message.answer(f"В уравнении #{i + 1} {equation.count('=')} знаков '='! Попробуй еще раз.",
-                                 parse_mode='Markdown')
+            await message.answer(f"В уравнении #{i + 1} {equation.count('=')} знаков =! Попробуй еще раз.")
             check_passed = False
         if check_passed:
             for token in equation.split():
                 if not is_number(token) and token != '=':
-                    await message.answer(f"В уравнении #{i + 1} '{token}' не число и не '='! Попробуй еще раз.",
-                                         parse_mode='Markdown')
+                    await message.answer(f"В уравнении #{i + 1} '{token}' не число и не =! Попробуй еще раз.")
                     check_passed = False
     if check_passed:
         async with state.proxy() as data:
             data['equations'] = equations
         await message.answer("Введи коэффициенты для целевой функции (учитывая свободный член):\n"
-                             "Пример: для 'Z(x) = 2X_1 - X_2' введи '2 -1 0'",
-                             parse_mode='Markdown')
+                             f'Пример: для {hbold("Z(x) = 2X_1 - X_2")} введи {hbold("2 -1 0")}')
         await Simplex.Function.set()
 
 
@@ -103,8 +100,7 @@ async def enter_function(message: types.Message, state: FSMContext):
     function = message.text
     for token in function.split():
         if not is_number(token):
-            await message.answer(f"В функции '{token}' не число! Попробуй еще раз.",
-                                 parse_mode='Markdown')
+            await message.answer(f"В функции '{token}' не число! Попробуй еще раз.")
             check_passed = False
     if check_passed:
         async with state.proxy() as data:
