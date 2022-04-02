@@ -4,7 +4,7 @@ from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Command
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
-from aiogram.utils.markdown import hlink
+from aiogram.utils.markdown import hlink, hbold
 
 from loader import dp
 from states.Simplex import Simplex
@@ -28,9 +28,10 @@ keyboard_maxmin = ReplyKeyboardMarkup(row_width=2,
 @dp.message_handler(Command('simplex'))
 async def start_simplex(message: types.Message, state: FSMContext):
     await message.answer('Это интерфейс к решению задачи поиска max/min функции при наложенных ограничениях. '
-                         f'За {hlink("решатель", "https://github.com/JettPy/Simlex-Table")} спасибо @suslik13.'
-                         'Желаешь продолжить? ;)',
-                         reply_markup=keyboard_start)
+                         f'За {hlink("решатель", "https://github.com/JettPy/Simlex-Table")} спасибо @suslik13.\n' \
+                         f'{hbold("Желаешь продолжить? ;)")}',
+                         reply_markup=keyboard_start,
+                         disable_web_page_preview=True)
     await Simplex.Start.set()
 
 
@@ -66,9 +67,9 @@ async def enter_num_equations(message: types.Message, state: FSMContext):
     else:
         async with state.proxy() as data:
             data['num_equation'] = num_eq
-        await message.answer("Введи коэффициенты и знаки для уравнений.\n"
-                             "Считать '>' как '>=' и '<' как '<='. В каждой строке -- одно уравнение.\n"
-                             "Пример: для 'X_1 + 2X_3 + X_3 = 4' введите '1 2 1 = 4'.")
+        await message.answer('Введи коэффициенты и знаки для уравнений.\n'
+                             'Считать \'>\' как \'>=\' и \'<\' как \'<=\'. В каждой строке -- одно уравнение.\n'
+                             "Пример: для \'X_1 + 2X_3 + X_3 = 4\' введите \'1 2 1 = 4\'.")
         await Simplex.Equations.set()
 
 
