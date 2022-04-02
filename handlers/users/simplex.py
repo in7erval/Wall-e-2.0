@@ -79,6 +79,7 @@ async def enter_equations(message: types.Message, state: FSMContext):
     equations = message.text.split('\n')
     data = await state.get_data()
     num_equations = int(data.get('num_equations'))
+    num_variables = int(data.get('num_variables'))
     check_passed = True
     if num_equations != len(equations):
         await message.answer(f"Количество введённых уравнений не соответствует введённому количеству! Попробуй ешё раз")
@@ -88,15 +89,20 @@ async def enter_equations(message: types.Message, state: FSMContext):
             if equation.count('=') != 1:
                 await message.answer(f"В уравнении #{i + 1} {equation.count('=')} знаков =! Попробуй еще раз.")
                 check_passed = False
-            if check_passed:
-                for token in equation.split():
-                    if not is_number(token) and token != '=':
-                        await message.answer(f"В уравнении #{i + 1} '{token}' не число и не =! Попробуй еще раз.")
-                        check_passed = False
+            else:
+                if len(equation.split()) != num_variables + 2:
+                    await message.answer(
+                        f"В уравнении #{i+1} количество введённых переменных не соответствует введённому количеству! Попробуй ешё раз")
+                    check_passed = False
+                else:
+                    for token in equation.split():
+                        if not is_number(token) and token != '=':
+                            await message.answer(f"В уравнении #{i + 1} '{token}' не число и не =! Попробуй еще раз.")
+                            check_passed = False
     if check_passed:
         async with state.proxy() as data:
             data['equations'] = equations
-        await message.answer("Введи коэффициенты для целевой функции (учитывая свободный член):\n"
+        await message.answer("Введи коэффициенты для целевой функции (учитывая свободный член и невошедшие переменные с 0):\n"
                              f'Пример: для {hbold("Z(x) = 2X_1 - X_2")} введи {hbold("2 -1 0")}')
         await Simplex.Function.set()
 
@@ -105,10 +111,16 @@ async def enter_equations(message: types.Message, state: FSMContext):
 async def enter_function(message: types.Message, state: FSMContext):
     check_passed = True
     function = message.text
-    for token in function.split():
-        if not is_number(token):
-            await message.answer(f"В функции '{token}' не число! Попробуй еще раз.")
-            check_passed = False
+    data = await state.get_data()
+    num_variables = int(data.get('num_variables'))
+    if len(function.split()) != num_variables + 1:
+        await message.answer(f"Введённое количество коэффициентов не совпадает с количеством переменных (или просто забыл свободный член). Попробуй ещё раз")
+        check_passed = False
+    else:
+        for token in function.split():
+            if not is_number(token):
+                await message.answer(f"В функции '{token}' не число! Попробуй еще раз.")
+                check_passed = False
     if check_passed:
         async with state.proxy() as data:
             data['function'] = function
@@ -126,7 +138,7 @@ async def solve_equations(message: types.Message, state: FSMContext):
         data = await state.get_data()
         num_vars = data.get('num_variables')
         num_equats = data.get('num_equations')
-        equats = '\n '.join(data.get('equations'))
+        equats = '\n '.join(list(data.get('equations')))
         function = data.get('function')
         maximize = 'y' if message.text == 'Максимизируем' else 'n'
         input_str = f'{num_vars}\n' \
