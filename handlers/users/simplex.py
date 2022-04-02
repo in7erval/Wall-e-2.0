@@ -77,7 +77,7 @@ async def enter_num_equations(message: types.Message, state: FSMContext):
 @dp.message_handler(state=Simplex.Equations)
 async def enter_equations(message: types.Message, state: FSMContext):
     equations = message.text.split('\n')
-    data = state.get_data()
+    data = await state.get_data()
     num_equations = data.get('num_equations')
     check_passed = True
     if num_equations != len(equations):
