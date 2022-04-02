@@ -96,8 +96,10 @@ async def enter_equations(message: types.Message, state: FSMContext):
                     check_passed = False
                 else:
                     for token in equation.split():
-                        if not is_number(token) and token != '=':
-                            await message.answer(f"В уравнении #{i + 1} '{token}' не число и не =! Попробуй еще раз.")
+                        if not is_number(token) and token not in ['=', '>=', '<=']:
+                            await message.answer(f"В уравнении #{i + 1} '{token}' не число и не =! Попробуй еще раз.\n"
+                                                 f"Знаки 'больше' и 'меньше' заменяй соответственно на '>=' и '<='",
+                                                 parse_mode='Markdown')
                             check_passed = False
     if check_passed:
         async with state.proxy() as data:
