@@ -3,8 +3,8 @@ import os
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Command
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
-from aiogram.utils.markdown import hlink, hbold
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InputFile
+from aiogram.utils.markdown import hlink, hbold, hcode
 
 from loader import dp
 from states.Simplex import Simplex
@@ -92,7 +92,7 @@ async def enter_equations(message: types.Message, state: FSMContext):
             else:
                 if len(equation.split()) != num_variables + 2:
                     await message.answer(
-                        f"В уравнении #{i+1} количество введённых переменных не соответствует введённому количеству! Попробуй ешё раз")
+                        f"В уравнении #{i + 1} количество введённых переменных не соответствует введённому количеству! Попробуй ешё раз")
                     check_passed = False
                 else:
                     for token in equation.split():
@@ -102,8 +102,9 @@ async def enter_equations(message: types.Message, state: FSMContext):
     if check_passed:
         async with state.proxy() as data:
             data['equations'] = equations
-        await message.answer("Введи коэффициенты для целевой функции (учитывая свободный член и невошедшие переменные с 0):\n"
-                             f'Пример: для {hbold("Z(x) = 2X_1 - X_2")} введи {hbold("2 -1 0")}')
+        await message.answer(
+            "Введи коэффициенты для целевой функции (учитывая свободный член и невошедшие переменные с 0):\n"
+            f'Пример: для {hbold("Z(x) = 2X_1 - X_2")} введи {hbold("2 -1 0")}')
         await Simplex.Function.set()
 
 
@@ -114,7 +115,8 @@ async def enter_function(message: types.Message, state: FSMContext):
     data = await state.get_data()
     num_variables = int(data.get('num_variables'))
     if len(function.split()) != num_variables + 1:
-        await message.answer(f"Введённое количество коэффициентов не совпадает с количеством переменных (или просто забыл свободный член). Попробуй ещё раз")
+        await message.answer(
+            f"Введённое количество коэффициентов не совпадает с количеством переменных (или просто забыл свободный член). Попробуй ещё раз")
         check_passed = False
     else:
         for token in function.split():
@@ -148,8 +150,19 @@ async def solve_equations(message: types.Message, state: FSMContext):
                     f'{maximize}\n\n'
         command = f'echo "{input_str}" | ./simplex_table'
         logging.info(command)
-        await message.answer(os.popen(command).read())
+        answer = await execute_command(command)
+        temp = open(f"answer{message.from_user.id}.txt", 'w+')
+        temp.write(answer)
+        temp.close()
+        await message.answer_document(document=InputFile(f"answer{message.from_user.id}.txt"),
+                                      caption='Пришёл ответ:\n'
+                                              f'{hcode(answer)}\n'
+                                              f'Для лучшей читаемости можно воспользоваться прикреплённым файлом.')
         await state.reset_state(with_data=True)
+
+
+async def execute_command(command: str):
+    return os.popen(command).read()
 
 
 def is_number(s: str):
