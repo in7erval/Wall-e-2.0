@@ -79,18 +79,18 @@ async def enter_equations(message: types.Message, state: FSMContext):
     check_passed = True
     for i, equation in enumerate(equations):
         if equation.count('=') != 1:
-            await message.answer(f"В уравнении #{i + 1} {equation.count('=')} знаков '='! Попробуй еще раз.")
+            await message.answer(f"В уравнении #{i + 1} {equation.count('=')} знаков \'=\'! Попробуй еще раз.")
             check_passed = False
         if check_passed:
             for token in equation.split():
                 if not is_number(token) and token != '=':
-                    await message.answer(f"В уравнении #{i + 1} '{token}' не число и не '='! Попробуй еще раз.")
+                    await message.answer(f"В уравнении #{i + 1} '{token}' не число и не \'=\'! Попробуй еще раз.")
                     check_passed = False
     if check_passed:
         async with state.proxy() as data:
             data['equations'] = equations
         await message.answer("Введи коэффициенты для целевой функции (учитывая свободный член):\n"
-                             "Пример: для 'Z(x) = 2X_1 - X_2' введи '2 -1 0'")
+                             "Пример: для \'Z(x) = 2X_1 - X_2\' введи \'2 -1 0\'")
         await Simplex.Function.set()
 
 
