@@ -8,6 +8,7 @@ from aiogram.utils.markdown import hlink, hbold
 
 from loader import dp
 from states.Simplex import Simplex
+import logging
 
 keyboard_start = ReplyKeyboardMarkup(row_width=2,
                                      resize_keyboard=True,
@@ -128,6 +129,7 @@ async def solve_equations(message: types.Message, state: FSMContext):
                     f'{function}\n' \
                     f'{maximize}\n\n'
         command = f'echo "{input_str}" | ./simplex_table'
+        logging.info(command)
         await message.answer(os.popen(command).read())
         await state.reset_state(with_data=True)
 
