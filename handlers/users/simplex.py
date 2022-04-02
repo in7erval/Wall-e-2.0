@@ -93,7 +93,7 @@ async def enter_equations(message: types.Message, state: FSMContext):
         await Simplex.Function.set()
 
 
-@dp.message_handler(states=Simplex.Function)
+@dp.message_handler(state=Simplex.Function)
 async def enter_function(message: types.Message, state: FSMContext):
     check_passed = True
     function = message.text
@@ -109,7 +109,7 @@ async def enter_function(message: types.Message, state: FSMContext):
         await Simplex.Maximize.set()
 
 
-@dp.message_handler(states=Simplex.Maximize)
+@dp.message_handler(state=Simplex.Maximize)
 async def solve_equations(message: types.Message, state: FSMContext):
     if message.text not in ['Максимизируем', 'Минимизируем']:
         await message.answer('Нажми на одну из кнопок',
