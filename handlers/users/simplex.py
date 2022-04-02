@@ -77,16 +77,22 @@ async def enter_num_equations(message: types.Message, state: FSMContext):
 @dp.message_handler(state=Simplex.Equations)
 async def enter_equations(message: types.Message, state: FSMContext):
     equations = message.text.split('\n')
+    data = state.get_data()
+    num_equations = data.get('num_equations')
     check_passed = True
-    for i, equation in enumerate(equations):
-        if equation.count('=') != 1:
-            await message.answer(f"В уравнении #{i + 1} {equation.count('=')} знаков =! Попробуй еще раз.")
-            check_passed = False
-        if check_passed:
-            for token in equation.split():
-                if not is_number(token) and token != '=':
-                    await message.answer(f"В уравнении #{i + 1} '{token}' не число и не =! Попробуй еще раз.")
-                    check_passed = False
+    if num_equations != len(equations):
+        await message.answer(f"Количество введённых уравнений не соответствует введённому количеству! Попробуй ешё раз")
+        check_passed = False
+    if check_passed:
+        for i, equation in enumerate(equations):
+            if equation.count('=') != 1:
+                await message.answer(f"В уравнении #{i + 1} {equation.count('=')} знаков =! Попробуй еще раз.")
+                check_passed = False
+            if check_passed:
+                for token in equation.split():
+                    if not is_number(token) and token != '=':
+                        await message.answer(f"В уравнении #{i + 1} '{token}' не число и не =! Попробуй еще раз.")
+                        check_passed = False
     if check_passed:
         async with state.proxy() as data:
             data['equations'] = equations
