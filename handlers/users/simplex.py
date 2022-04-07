@@ -1,4 +1,5 @@
 import os
+import subprocess
 
 from aiogram import types
 from aiogram.dispatcher import FSMContext
@@ -86,8 +87,8 @@ async def enter_equations(message: types.Message, state: FSMContext):
         check_passed = False
     if check_passed:
         for i, equation in enumerate(equations):
-            if equation.count('=') != 1:
-                await message.answer(f"В уравнении #{i + 1} {equation.count('=')} знаков =! Попробуй еще раз.")
+            if equation.count('=') != 0:
+                await message.answer(f"В уравнении #{i + 1} {equation.count('=')} есть знак =! Заменяй >= и <= на < и > соответственно. Попробуй еще раз.")
                 check_passed = False
             else:
                 if len(equation.split()) != num_variables + 2:
@@ -96,9 +97,9 @@ async def enter_equations(message: types.Message, state: FSMContext):
                     check_passed = False
                 else:
                     for token in equation.split():
-                        if not is_number(token) and token not in ['=', '>=', '<=']:
-                            await message.answer(f"В уравнении #{i + 1} '{token}' не число и не =! Попробуй еще раз.\n"
-                                                 f"Знаки 'больше' и 'меньше' заменяй соответственно на '>=' и '<='",
+                        if not is_number(token) and token not in ['>', '<']:
+                            await message.answer(f"В уравнении #{i + 1} '{token}' не число и не [>, <]! Попробуй еще раз.\n"
+                                                 f"Знаки '>=' и '<=' заменяй соответственно на '>' и '<'",
                                                  parse_mode='Markdown')
                             check_passed = False
     if check_passed:
@@ -150,9 +151,9 @@ async def solve_equations(message: types.Message, state: FSMContext):
                     f'{equats}\n' \
                     f'{function}\n' \
                     f'{maximize}\n\n'
-        command = f'echo "{input_str}" | ./simplex_table'
+        command = './simplex_table'
         logging.info(command)
-        answer = await execute_command(command)
+        answer = await execute_command(command, input_str)
         temp = open(f"answer{message.from_user.id}.txt", 'w+')
         temp.write(answer)
         temp.close()
@@ -167,8 +168,10 @@ async def solve_equations(message: types.Message, state: FSMContext):
         await state.reset_state(with_data=True)
 
 
-async def execute_command(command: str):
-    return os.popen(command).read()
+async def execute_command(command: str, input_str: str):
+    ans = subprocess.run(command, input=input_str.encode('utf-8'),
+                         stdout=subprocess.PIPE).stdout
+    return ans.decode('utf-8')
 
 
 def is_number(s: str):
