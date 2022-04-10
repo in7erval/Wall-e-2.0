@@ -208,24 +208,27 @@ async def solve_equations(message: types.Message, state: FSMContext):
     else:
         data = await state.get_data()
         app = data['app']
-        if message.text == 'Гомори':
-            app.do_gomori(False)
-            logging.debug("Gomori done")
-        elif message.text == 'Искусственного базиса':
-            app.do_artificial_basis(False)
-            logging.debug("ArtificialBasic done")
-        else:
-            app.do_dual_task(False)
-            logging.debug('DualTask done')
-        temp = open(f"answer{message.from_user.id}.txt", 'r')
-        answer = "\n".join(temp.readlines())
-        if len(answer) <= 4000:
-            await message.answer('Пришёл ответ:\n'
-                                 f'{hcode(answer)}\n'
-                                 f'Для лучшей читаемости можно воспользоваться файлом ниже.')
-        await message.answer_document(document=InputFile(f"answer{message.from_user.id}.txt"))
-        await message.answer('Что-то ещё?',
-                             reply_markup=keyboard_method)
+        try:
+            if message.text == 'Гомори':
+                app.do_gomori(False)
+                logging.debug("Gomori done")
+            elif message.text == 'Искусственного базиса':
+                app.do_artificial_basis(False)
+                logging.debug("ArtificialBasic done")
+            else:
+                app.do_dual_task(False)
+                logging.debug('DualTask done')
+            temp = open(f"answer{message.from_user.id}.txt", 'r')
+            answer = "\n".join(temp.readlines())
+            if len(answer) <= 4000:
+                await message.answer('Пришёл ответ:\n'
+                                     f'{hcode(answer)}\n'
+                                     f'Для лучшей читаемости можно воспользоваться файлом ниже.')
+            await message.answer_document(document=InputFile(f"answer{message.from_user.id}.txt"))
+            await message.answer('Что-то ещё?',
+                                 reply_markup=keyboard_method)
+        except Exception as err:
+            await message.answer(f"Ошибка! {err}\n Попробуй заново")
 
 
 def is_number(s: str):

@@ -14,7 +14,7 @@ class ArtificialBasis(SimplexTable):
             table.append(row.copy())
         for i in range(len(table)):
             table[i].append(matrix_b[i])
-        table.append(matrix_c.copy() + [0])
+        table.append(matrix_c.copy())
         for i in range(len(table[0])):
             table[len(table) - 1][i] = -table[len(table) - 1][i]
         pos = len(matrix_a)
