@@ -116,7 +116,7 @@ async def enter_equations(message: types.Message, state: FSMContext):
 
     is_error, error_str, answer = parse_equation(equation, num_variables)
     if is_error:
-        await message.answer(f"{error_str}\nПопробуй ешё раз")
+        await message.answer(f"{error_str}\nПопробуй ешё раз", parse_mode='Markdown')
         return
     num_entered_equations += 1
     (matrix_a_row, sign, b) = answer
@@ -148,7 +148,7 @@ async def enter_function(message: types.Message, state: FSMContext):
 
     is_error, error_str, matrix_c = parse_function_coefs(function, num_variables)
     if is_error:
-        await message.answer(f"{error_str}\nПопробуй ешё раз")
+        await message.answer(f"{error_str}\nПопробуй ешё раз", parse_mode='Markdown')
         return
     async with state.proxy() as data:
         data['matrix_c'] = matrix_c

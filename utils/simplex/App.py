@@ -31,11 +31,11 @@ def parse_equation(buffer: str, variables_count: int) -> (bool, str, tuple):
         try:
             a = int(equation[i])
         except ValueError:
-            return True, f"Коэффициент '{equation[i]}' не целое число!", None
+            return True, f"Коэффициент {equation[i]} не целое число!", None
         matrix_a_row.append(a)
     sign = equation[variables_count]
     if sign != '>=' and sign != '==' and sign != '<=':
-        return True, 'Введи знак как ">=", "<=", или "=="', None
+        return True, 'Введи знак как >=, <=, или ==', None
     try:
         b = int(equation[variables_count + 1])
     except ValueError:
@@ -55,7 +55,7 @@ def parse_function_coefs(buffer, variables_count) -> (bool, str, list):
         try:
             c = int(equation[i])
         except ValueError:
-            return True, f"Коэффициент '{equation[i]}' не целое число!", None
+            return True, f"Коэффициент {equation[i]} не целое число!", None
         matrix_c.append(c)
     return False, "", matrix_c
 
