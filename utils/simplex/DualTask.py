@@ -24,7 +24,7 @@ class DualTask:
         if is_to_console:
             self.print_dual_system(matrix_a_t, matrix_b_t, matrix_c_t, dual_signs, dual_is_maximize)
         else:
-            self.print_dual_system_to_file(matrix_a_t, matrix_b_t, matrix_c_t, dual_signs, dual_is_maximize)
+            self.print_dual_system_to_file(matrix_a_t, matrix_b_t, matrix_c_t, dual_signs, dual_is_maximize, self.filename)
         for i in range(len(matrix_b_t)):
             if matrix_b_t[i] < 0:
                 for j in range(len(matrix_c_t)):
@@ -74,8 +74,8 @@ class DualTask:
             print(' -> min')
 
     @staticmethod
-    def print_dual_system_to_file(matrix_a: list, matrix_b: list, matrix_c: list, signs: list, is_maximize: bool):
-        file = open(self.filename, 'a')
+    def print_dual_system_to_file(matrix_a: list, matrix_b: list, matrix_c: list, signs: list, is_maximize: bool, filename: str):
+        file = open(filename, 'a')
         file.write('Dual system:\n')
         for i in range(len(matrix_a)):
             for j in range(len(matrix_b)):
