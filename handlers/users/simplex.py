@@ -103,6 +103,7 @@ async def enter_equations(message: types.Message, state: FSMContext):
     if is_error:
         await message.answer(f"{error_str}\nПопробуй ешё раз")
         return
+    num_entered_equations += 1
     (matrix_a_row, sign, b) = answer
     matrix_a.append(matrix_a_row)
     signs.append(sign)
@@ -110,13 +111,13 @@ async def enter_equations(message: types.Message, state: FSMContext):
     data['matrix_a'] = matrix_a
     data['signs'] = signs
     data['matrix_b'] = matrix_b
-    if num_entered_equations + 1 == num_equations:
+    data['num_entered_equations'] = num_entered_equations
+    if num_entered_equations == num_equations:
         await message.answer(
             "Введи коэффициенты для целевой функции (учитывая свободный член и невошедшие переменные с 0):\n"
             f'Пример: для {hbold("Z(x) = 2X_1 - X_2")} введи {hbold("2 -1 0")}')
         await Simplex.Function.set()
     else:
-        data['num_entered_equations'] = num_entered_equations + 1
         await message.answer(f'Теперь то же самое для уравнения №{num_entered_equations + 1}. :)))')
 
 
