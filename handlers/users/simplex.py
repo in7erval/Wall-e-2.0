@@ -144,18 +144,25 @@ async def enter_function(message: types.Message, state: FSMContext):
 async def solve_equations(message: types.Message, state: FSMContext):
     if message.text == STOP_WORD:
         await state.reset_state(with_data=True)
-    if message.text not in ['Максимизируем', 'Минимизируем']:
+    if message.text not in ['Максимизируем 📈', 'Минимизируем  📉']:
         await message.answer('Нажми на одну из кнопок',
                              reply_markup=keyboard_maxmin)
     else:
         data = await state.get_data()
-        num_vars = data.get('num_variables')
-        num_equats = data.get('num_equations')
+        num_vars = int(data.get('num_variables'))
+        num_equats = int(data.get('num_equations'))
         matrix_a = data.get('matrix_a')
         matrix_b = data.get('matrix_b')
         matrix_c = data.get('matrix_c')
         signs = data.get('signs')
-        is_maximize = message.text == 'Максимизируем'
+        is_maximize = 'Максимизируем' in message.text
+        deb = f"Количество переменных: {num_vars}\n" \
+              f"Количество уравнений: {num_equats}\n" \
+              f"Матрица А: {matrix_a}\n" \
+              f"Матрица B: {matrix_b}\n" \
+              f"Матрица С: {matrix_c}\n" \
+              f"Знаки: {signs}\n" \
+              f"Максимизация: {is_maximize}"
 
         app = App(variables_count=num_vars,
                   equations_count=num_equats,
@@ -165,6 +172,7 @@ async def solve_equations(message: types.Message, state: FSMContext):
                   signs=signs,
                   is_maximize=is_maximize)
         app.do_artificial_basis(False)
+        logging.log("Artificial Basis done")
         #
         # input_str = f'{num_vars}\n' \
         #             f'{num_equats}\n' \
