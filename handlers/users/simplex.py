@@ -115,10 +115,11 @@ async def enter_equations(message: types.Message, state: FSMContext):
     matrix_a.append(matrix_a_row)
     signs.append(sign)
     matrix_b.append(b)
-    data['matrix_a'] = matrix_a
-    data['signs'] = signs
-    data['matrix_b'] = matrix_b
-    data['num_entered_equations'] = num_entered_equations
+    async with state.proxy() as data:
+        data['matrix_a'] = matrix_a
+        data['signs'] = signs
+        data['matrix_b'] = matrix_b
+        data['num_entered_equations'] = num_entered_equations
     if num_entered_equations == num_equations:
         await message.answer(
             "Введи коэффициенты для целевой функции (учитывая свободный член и невошедшие переменные с 0):\n"
