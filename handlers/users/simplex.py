@@ -90,14 +90,21 @@ async def enter_num_equations(message: types.Message, state: FSMContext):
 async def enter_equations(message: types.Message, state: FSMContext):
     if message.text == STOP_WORD:
         await state.reset_state(with_data=True)
+    equation = message.text
     data = await state.get_data()
     num_entered_equations = int(data.get('num_entered_equations'))
-    equation = message.text
     num_equations = int(data.get('num_equations'))
     num_variables = int(data.get('num_variables'))
     matrix_a = list(data.get('matrix_a'))
     matrix_b = list(data.get('matrix_b'))
     signs = list(data.get('signs'))
+
+    logging.debug(f'num_entered_equations={num_entered_equations} '
+                  f'num_equations={num_equations} '
+                  f'num_variables={num_variables} '
+                  f'matrix_a={matrix_a} '
+                  f'matrix_b={matrix_b} '
+                  f'signs={signs} ')
 
     is_error, error_str, answer = parse_equation(equation, num_variables)
     if is_error:
@@ -118,6 +125,7 @@ async def enter_equations(message: types.Message, state: FSMContext):
             f'Пример: для {hbold("Z(x) = 2X_1 - X_2")} введи {hbold("2 -1 0")}')
         await Simplex.Function.set()
     else:
+        logging.debug(f"num_entered_equations={num_entered_equations}")
         await message.answer(f'Теперь то же самое для уравнения №{num_entered_equations + 1}. :)))')
 
 
