@@ -1,7 +1,8 @@
 import math
 from fractions import Fraction
 from accessify import private
-from SimplexTable import SimplexTable
+
+from utils.simplex.SimplexTable import SimplexTable
 
 
 class Gomori(SimplexTable):

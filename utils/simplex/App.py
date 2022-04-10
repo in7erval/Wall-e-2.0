@@ -1,9 +1,11 @@
 from accessify import private
-from ArtificialBasis import ArtificialBasis
-from DualTask import DualTask
-from Gomori import Gomori
 
 # for variables_count and equations_count
+from utils.simplex.ArtificialBasis import ArtificialBasis
+from utils.simplex.DualTask import DualTask
+from utils.simplex.Gomori import Gomori
+
+
 def parse_int(buffer) -> (bool, str, int):
     """
     :return isError and Error description

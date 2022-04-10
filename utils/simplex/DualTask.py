@@ -1,4 +1,4 @@
-from ArtificialBasis import ArtificialBasis
+from utils.simplex.ArtificialBasis import ArtificialBasis
 
 
 class DualTask:
