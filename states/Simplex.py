@@ -8,3 +8,4 @@ class Simplex(StatesGroup):
     Equations = State()
     Function = State()
     Maximize = State()
+    Method = State()

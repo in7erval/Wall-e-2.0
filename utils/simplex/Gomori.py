@@ -6,8 +6,10 @@ from utils.simplex.SimplexTable import SimplexTable
 
 
 class Gomori(SimplexTable):
-    def __init__(self, table: list, rows_caption: list, columns_caption: list, is_maximize: bool):
+    def __init__(self, table: list, rows_caption: list, columns_caption: list, is_maximize: bool,
+                 filename: str):
         self.is_maximize = is_maximize
+        self.filename = filename
         for i in range(len(table[0])):
             table[len(table) - 1][i] = - table[len(table) - 1][i]
         super().__init__(table, len(table), len(table[0]), rows_caption, columns_caption)
@@ -51,7 +53,7 @@ class Gomori(SimplexTable):
 
     @private
     def print_new_equation_to_file(self, q: list):
-        file = open('answer.txt', 'a')
+        file = open(self.filename, 'a')
         file.write('Added new equation: {}'.format(-q[len(q) - 1]))
         for i in range(len(q) - 1):
             if q[i] == -1:
@@ -106,7 +108,7 @@ class Gomori(SimplexTable):
         if is_to_console:
             self.print()
         else:
-            file = open('answer.txt', 'a')
+            file = open(self.filename, 'a')
             tmp_table = self.get_table_to_print()
             for row in tmp_table:
                 for element in row:

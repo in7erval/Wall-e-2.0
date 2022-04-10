@@ -2,7 +2,7 @@ from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Command
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InputFile
-from aiogram.utils.markdown import hlink, hbold, hcode
+from aiogram.utils.markdown import hlink, hbold, hcode, hitalic
 
 from loader import dp
 from states.Simplex import Simplex
@@ -10,6 +10,7 @@ import logging
 
 from utils.simplex.App import parse_equation, parse_function_coefs, App
 
+STOP_WORD = 'СТОП'
 keyboard_start = ReplyKeyboardMarkup(row_width=2,
                                      resize_keyboard=True,
                                      one_time_keyboard=True,
@@ -24,8 +25,15 @@ keyboard_maxmin = ReplyKeyboardMarkup(row_width=2,
                                           KeyboardButton('Максимизируем 📈'),
                                           KeyboardButton('Минимизируем  📉')
                                       ]])
-
-STOP_WORD = 'СТОП'
+keyboard_method = ReplyKeyboardMarkup(row_width=3,
+                                      one_time_keyboard=True,
+                                      resize_keyboard=True,
+                                      keyboard=[[
+                                          KeyboardButton('Искусственного базиса'),
+                                          KeyboardButton('Дуальная задача'),
+                                          KeyboardButton('Гомори'),
+                                      ],
+                                          [KeyboardButton(STOP_WORD)]])
 
 
 @dp.message_handler(Command('simplex'))
@@ -150,7 +158,7 @@ async def enter_function(message: types.Message, state: FSMContext):
 
 
 @dp.message_handler(state=Simplex.Maximize)
-async def solve_equations(message: types.Message, state: FSMContext):
+async def choice_method(message: types.Message, state: FSMContext):
     if message.text == STOP_WORD:
         await state.reset_state(with_data=True)
     if message.text not in ['Максимизируем 📈', 'Минимизируем  📉']:
@@ -171,7 +179,7 @@ async def solve_equations(message: types.Message, state: FSMContext):
               f"Матрица B: {matrix_b}\n" \
               f"Матрица С: {matrix_c}\n" \
               f"Знаки: {signs}\n" \
-              f"Максимизация: {is_maximize}"
+              f"Максимизация: {'да' if is_maximize else 'нет'}"
 
         app = App(variables_count=num_vars,
                   equations_count=num_equats,
@@ -180,27 +188,42 @@ async def solve_equations(message: types.Message, state: FSMContext):
                   matrix_c=matrix_c,
                   signs=signs,
                   is_maximize=is_maximize)
-        app.do_artificial_basis(False)
-        logging.debug("Artificial Basis done")
-        #
-        # input_str = f'{num_vars}\n' \
-        #             f'{num_equats}\n' \
-        #             f'{equats}\n' \
-        #             f'{function}\n' \
-        #             f'{maximize}\n\n'
-        # command = './simplex_table'
-        # logging.info(command)
-        # answer = await execute_command(command, input_str)
+        async with state.proxy() as data:
+            data['app'] = app
+        await message.answer('Ты ввёл следующие данные о задаче:\n'
+                             f'{hcode(deb)}\n'
+                             f'{hitalic("Теперь выбери способ решения на клавиатуре")}',
+                             reply_markup=keyboard_method)
+        await Simplex.Method.set()
+
+
+@dp.message_handler(state=Simplex.Method)
+async def solve_equations(message: types.Message, state: FSMContext):
+    if message.text == STOP_WORD:
+        await state.reset_state(with_data=True)
+    if message.text not in ['Гомори', 'Искусственного базиса', 'Дуальная задача']:
+        await message.answer('Нажми на одну из кнопок',
+                             reply_markup=keyboard_maxmin)
+    else:
+        data = await state.get_data()
+        app = data['app']
+        if message.text == 'Гомори':
+            app.do_gomori(False)
+            logging.debug("Gomori done")
+        elif message.text == 'Искусственного базиса':
+            app.do_artificial_basis(False)
+            logging.debug("ArtificialBasic done")
+        else:
+            app.do_dual_task(False)
+            logging.debug('DualTask done')
         temp = open(f"answer.txt", 'r')
-        # temp.write(answer)
-        # temp.close()
         answer = "\n".join(temp.readlines())
         if len(answer) <= 4000:
             await message.answer('Пришёл ответ:\n'
                                  f'{hcode(answer)}\n'
                                  f'Для лучшей читаемости можно воспользоваться файлом ниже.')
         await message.answer_document(document=InputFile(f"answer.txt"))
-        await state.reset_state(with_data=True)
+        await message.answer('Что-то ещё?')
 
 
 def is_number(s: str):

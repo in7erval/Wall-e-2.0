@@ -2,8 +2,10 @@ from utils.simplex.ArtificialBasis import ArtificialBasis
 
 
 class DualTask:
-    def __init__(self, matrix_a: list, matrix_b: list, matrix_c: list, is_maximize: bool, is_to_console=True):
+    def __init__(self, matrix_a: list, filename: str, matrix_b: list, matrix_c: list, is_maximize: bool,
+                 is_to_console=True):
         matrix_a_t = []
+        self.filename = filename
         for i in range(len(matrix_a[0])):
             row_a = []
             for j in range(len(matrix_a)):
@@ -73,7 +75,7 @@ class DualTask:
 
     @staticmethod
     def print_dual_system_to_file(matrix_a: list, matrix_b: list, matrix_c: list, signs: list, is_maximize: bool):
-        file = open('answer.txt', 'a')
+        file = open(self.filename, 'a')
         file.write('Dual system:\n')
         for i in range(len(matrix_a)):
             for j in range(len(matrix_b)):

@@ -62,7 +62,8 @@ def parse_function_coefs(buffer, variables_count) -> (bool, str, list):
 
 
 class App:
-    def __init__(self, variables_count: int = 0,
+    def __init__(self, filename: str,
+                 variables_count: int = 0,
                  equations_count: int = 0,
                  matrix_a: list = [],
                  matrix_b: list = [],
@@ -76,6 +77,7 @@ class App:
         self.matrix_c = matrix_c
         self.signs = signs
         self.is_maximize = is_maximize
+        self.filename = filename
 
     def enter_from_console(self):
         while True:
@@ -253,7 +255,7 @@ class App:
             print(' -> min')
 
     def print_to_file(self):
-        file = open('answer.txt', 'w')
+        file = open(self.filename, 'w')
         file.write('Your enter:' + '\n')
         for i in range(self.equations_count):
             for j in range(self.variables_count):
@@ -318,7 +320,7 @@ class App:
         self.transform_to_positive_b()
         file = None
         if not is_to_console:
-            file = open('answer.txt', 'a')
+            file = open(self.filename, 'a')
         table = ArtificialBasis(self.matrix_a, self.matrix_b, self.matrix_c, self.signs, self.is_maximize)
         if is_to_console:
             print('Initial:')
@@ -404,12 +406,20 @@ class App:
         file = None
         table = None
         if is_to_console:
-            table = DualTask(self.matrix_a, self.matrix_b, self.matrix_c, self.is_maximize)
+            table = DualTask(matrix_a=self.matrix_a, matrix_b=self.matrix_b,
+                             matrix_c=self.matrix_c,
+                             is_maximize=self.is_maximize,
+                             filename=None)
             print('Initial:')
             table.print()
         else:
-            table = DualTask(self.matrix_a, self.matrix_b, self.matrix_c, self.is_maximize, False)
-            file = open('answer.txt', 'a')
+            table = DualTask(matrix_a=self.matrix_a,
+                             filename=self.filename,
+                             matrix_b=self.matrix_b,
+                             matrix_c=self.matrix_c,
+                             is_maximize=self.is_maximize,
+                             is_to_console=False)
+            file = open(self.filename, 'a')
             file.write('Initial:\n')
             tmp_table = table.get_table_to_print()
             for row in tmp_table:
@@ -489,7 +499,7 @@ class App:
         self.transform_to_positive_b()
         file = None
         if not is_to_console:
-            file = open('answer.txt', 'a')
+            file = open(self.filename, 'a')
         table = ArtificialBasis(self.matrix_a, self.matrix_b, self.matrix_c, self.signs, self.is_maximize)
         if is_to_console:
             print('Initial:')
@@ -554,7 +564,11 @@ class App:
         else:
             file.write('Using Gomori method:\n')
         table_data, rows_data, columns_data, task = table.get_data()
-        gomori_table = Gomori(table_data, rows_data, columns_data, task)
+        gomori_table = Gomori(table=table_data,
+                              rows_caption=rows_data,
+                              columns_caption=columns_data,
+                              is_maximize=task,
+                              filename=self.filename)
         while gomori_table.can_be_iterated():
             if is_to_console:
                 print('Step {}:'.format(count))
@@ -567,7 +581,7 @@ class App:
             else:
                 file.close()
                 element = gomori_table.iterate(False)
-                file = open('answer.txt', 'a')
+                file = open(self.filename, 'a')
                 file.write(element + '\n')
                 tmp_table = gomori_table.get_table_to_print()
                 for row in tmp_table:
