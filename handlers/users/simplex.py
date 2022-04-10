@@ -187,7 +187,8 @@ async def choice_method(message: types.Message, state: FSMContext):
                   matrix_b=matrix_b,
                   matrix_c=matrix_c,
                   signs=signs,
-                  is_maximize=is_maximize)
+                  is_maximize=is_maximize,
+                  filename=f'answer{message.from_user.id}.txt')
         async with state.proxy() as data:
             data['app'] = app
         await message.answer('Ты ввёл следующие данные о задаче:\n'
@@ -216,13 +217,13 @@ async def solve_equations(message: types.Message, state: FSMContext):
         else:
             app.do_dual_task(False)
             logging.debug('DualTask done')
-        temp = open(f"answer.txt", 'r')
+        temp = open(f"answer{message.from_user.id}.txt", 'r')
         answer = "\n".join(temp.readlines())
         if len(answer) <= 4000:
             await message.answer('Пришёл ответ:\n'
                                  f'{hcode(answer)}\n'
                                  f'Для лучшей читаемости можно воспользоваться файлом ниже.')
-        await message.answer_document(document=InputFile(f"answer.txt"))
+        await message.answer_document(document=InputFile(f"answer{message.from_user.id}.txt"))
         await message.answer('Что-то ещё?')
 
 
