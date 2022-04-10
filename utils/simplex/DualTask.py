@@ -12,7 +12,7 @@ class DualTask:
                 row_a.append(matrix_a[j][i])
             matrix_a_t.append(row_a.copy())
             row_a.clear()
-        matrix_b_t = matrix_c[:-1].copy()
+        matrix_b_t = matrix_c.copy()
         matrix_c_t = matrix_b.copy()
         dual_is_maximize = not is_maximize
         dual_signs = []

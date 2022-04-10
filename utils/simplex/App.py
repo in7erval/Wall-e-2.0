@@ -47,11 +47,11 @@ def parse_equation(buffer: str, variables_count: int) -> (bool, str, tuple):
 def parse_function_coefs(buffer, variables_count) -> (bool, str, list):
     matrix_c = []
     equation = buffer.split()
-    if len(equation) < variables_count + 1:
-        return True, f"Мало аргументов... Введено {len(equation)}, должно быть {variables_count + 1}", None
-    elif len(equation) > variables_count + 1:
-        return True, f"Много аргументов... Введено {len(equation)}, должно быть {variables_count + 1}", None
-    for i in range(variables_count + 1):
+    if len(equation) < variables_count:
+        return True, f"Мало аргументов... Введено {len(equation)}, должно быть {variables_count}", None
+    elif len(equation) > variables_count:
+        return True, f"Много аргументов... Введено {len(equation)}, должно быть {variables_count}", None
+    for i in range(variables_count):
         try:
             c = int(equation[i])
         except ValueError:
@@ -143,13 +143,13 @@ class App:
             k += 1
 
         while True:
-            print('Enter {} coefficients (1 for constant) for object function:'.format(self.variables_count + 1))
+            print('Enter {} coefficients for object function:'.format(self.variables_count))
             buffer = input()
             equation = buffer.split()
-            if len(equation) < self.variables_count + 1:
+            if len(equation) < self.variables_count:
                 print('Too few arguments')
                 continue
-            elif len(equation) > self.variables_count + 1:
+            elif len(equation) > self.variables_count:
                 print('Too many arguments')
                 continue
             try:

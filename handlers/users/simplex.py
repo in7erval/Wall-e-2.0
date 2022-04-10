@@ -133,8 +133,8 @@ async def enter_equations(message: types.Message, state: FSMContext):
         data['num_entered_equations'] = num_entered_equations
     if num_entered_equations == num_equations:
         await message.answer(
-            "Введи коэффициенты для целевой функции (учитывая свободный член и невошедшие переменные с 0):\n"
-            f'Пример: для {hbold("Z(x) = 2X_1 - X_2")} введи {hbold("2 -1 0")}')
+            "Введи коэффициенты для целевой функции (без свободного члена, но учитывая невошедшие переменные как 0*X_i):\n"
+            f'Пример: для {hbold("Z(x) = 2X_1 - X_2")} с тремя переменными введи {hbold("2 -1 0")}')
         await Simplex.Function.set()
     else:
         logging.debug(f"num_entered_equations={num_entered_equations}")
@@ -234,7 +234,7 @@ async def solve_equations(message: types.Message, state: FSMContext):
             await message.answer('Что-то ещё?',
                                  reply_markup=keyboard_method)
         except Exception as err:
-            await message.answer(f"Ошибка! {err}\n Попробуй ввести всё заново и по желанию "
+            await message.answer(f"Ошибка! {err}\nПопробуй ввести всё заново и по желанию "
                                  f"расскажи @Dimo4kaa что вводил(а)")
             await state.reset_state(with_data=True)
             raise err
