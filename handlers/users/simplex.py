@@ -4,7 +4,7 @@ from aiogram.dispatcher.filters import Command
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InputFile
 from aiogram.utils.markdown import hlink, hbold, hcode, hitalic
 
-from loader import dp
+from loader import dp, bot
 from states.Simplex import Simplex
 import logging
 
@@ -63,6 +63,7 @@ async def stop_or_variables(message: types.Message, state: FSMContext):
 async def enter_num_variables(message: types.Message, state: FSMContext):
     if message.text == STOP_WORD:
         await state.reset_state(with_data=True)
+        return
     num_var = message.text
     if not num_var.isnumeric():
         await message.answer('Введённое значение не число, попробуй ещё раз')
@@ -77,6 +78,7 @@ async def enter_num_variables(message: types.Message, state: FSMContext):
 async def enter_num_equations(message: types.Message, state: FSMContext):
     if message.text == STOP_WORD:
         await state.reset_state(with_data=True)
+        return
     num_eq = message.text
     if not num_eq.isnumeric():
         await message.answer('Введённое значение не число, попробуй ещё раз')
@@ -98,6 +100,7 @@ async def enter_num_equations(message: types.Message, state: FSMContext):
 async def enter_equations(message: types.Message, state: FSMContext):
     if message.text == STOP_WORD:
         await state.reset_state(with_data=True)
+        return
     equation = message.text
     data = await state.get_data()
     num_entered_equations = int(data.get('num_entered_equations'))
@@ -142,6 +145,7 @@ async def enter_equations(message: types.Message, state: FSMContext):
 async def enter_function(message: types.Message, state: FSMContext):
     if message.text == STOP_WORD:
         await state.reset_state(with_data=True)
+        return
     function = message.text
     data = await state.get_data()
     num_variables = int(data.get('num_variables'))
@@ -161,6 +165,7 @@ async def enter_function(message: types.Message, state: FSMContext):
 async def choice_method(message: types.Message, state: FSMContext):
     if message.text == STOP_WORD:
         await state.reset_state(with_data=True)
+        return
     if message.text not in ['Максимизируем 📈', 'Минимизируем  📉']:
         await message.answer('Нажми на одну из кнопок',
                              reply_markup=keyboard_maxmin)
@@ -202,6 +207,7 @@ async def choice_method(message: types.Message, state: FSMContext):
 async def solve_equations(message: types.Message, state: FSMContext):
     if message.text == STOP_WORD:
         await state.reset_state(with_data=True)
+        return
     if message.text not in ['Гомори', 'Искусственного базиса', 'Дуальная задача']:
         await message.answer('Нажми на одну из кнопок',
                              reply_markup=keyboard_maxmin)
@@ -228,7 +234,10 @@ async def solve_equations(message: types.Message, state: FSMContext):
             await message.answer('Что-то ещё?',
                                  reply_markup=keyboard_method)
         except Exception as err:
-            await message.answer(f"Ошибка! {err}\n Попробуй заново")
+            await message.answer(f"Ошибка! {err}\n Попробуй ввести всё заново и по желанию "
+                                 f"расскажи @Dimo4kaa что вводил(а)")
+            await state.reset_state(with_data=True)
+            raise err
 
 
 def is_number(s: str):
