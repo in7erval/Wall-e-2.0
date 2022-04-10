@@ -79,10 +79,10 @@ async def enter_num_equations(message: types.Message, state: FSMContext):
             data['matrix_a'] = []
             data['matrix_b'] = []
             data['signs'] = []
-        await message.answer('Введи коэффициенты и знаки для уравнения №1.'
-                             'Пример: для "x_1 + 2*x_2 + x_3 = 4" введите "1 2 1 == 4".'
-                             'Как ты уже мог заметить для "=" используется "==" и вместо "больше" и "меньше"'
-                             'используются "больше или равно" и "меньше или равно" соответственно. Учитывай это при вводе 😋')
+        await message.answer('Введи коэффициенты и знаки для уравнения №1.\n'
+                             'Пример: для "x_1 + 2*x_2 + x_3 = 4" введите "1 2 1 == 4".\n'
+                             'Как ты уже мог заметить для "=" используется "==" и вместо "больше" и "меньше" '
+                             'используются "больше или равно" и "меньше или равно" соответственно.\nУчитывай это при вводе 😋')
         await Simplex.Equations.set()
 
 
@@ -99,10 +99,11 @@ async def enter_equations(message: types.Message, state: FSMContext):
     matrix_b = list(data.get('matrix_b'))
     signs = list(data.get('signs'))
 
-    is_error, error_str, (matrix_a_row, sign, b) = parse_equation(equation, num_variables)
+    is_error, error_str, answer = parse_equation(equation, num_variables)
     if is_error:
         await message.answer(f"{error_str}\nПопробуй ешё раз")
         return
+    (matrix_a_row, sign, b) = answer
     matrix_a.append(matrix_a_row)
     signs.append(sign)
     matrix_b.append(b)
