@@ -82,8 +82,7 @@ async def enter_num_equations(message: types.Message, state: FSMContext):
         await message.answer('Введи коэффициенты и знаки для уравнения №1.'
                              'Пример: для "x_1 + 2*x_2 + x_3 = 4" введите "1 2 1 == 4".'
                              'Как ты уже мог заметить для "=" используется "==" и вместо "больше" и "меньше"'
-                             'используются "больше или равно" и "меньше или равно" соответственно. Учитывай это при вводе 😋',
-                             parse_mode='Markdown')
+                             'используются "больше или равно" и "меньше или равно" соответственно. Учитывай это при вводе 😋')
         await Simplex.Equations.set()
 
 
@@ -102,7 +101,7 @@ async def enter_equations(message: types.Message, state: FSMContext):
 
     is_error, error_str, (matrix_a_row, sign, b) = parse_equation(equation, num_variables)
     if is_error:
-        await message.answer(f"{error_str}\nПопробуй ешё раз", parse_mode='Markdown')
+        await message.answer(f"{error_str}\nПопробуй ешё раз")
         return
     matrix_a.append(matrix_a_row)
     signs.append(sign)
@@ -110,16 +109,14 @@ async def enter_equations(message: types.Message, state: FSMContext):
     data['matrix_a'] = matrix_a
     data['signs'] = signs
     data['matrix_b'] = matrix_b
-
     if num_entered_equations + 1 == num_equations:
         await message.answer(
             "Введи коэффициенты для целевой функции (учитывая свободный член и невошедшие переменные с 0):\n"
-            f'Пример: для {hbold("Z(x) = 2X_1 - X_2")} введи {hbold("2 -1 0")}', parse_mode='Markdown')
+            f'Пример: для {hbold("Z(x) = 2X_1 - X_2")} введи {hbold("2 -1 0")}')
         await Simplex.Function.set()
     else:
         data['num_entered_equations'] = num_entered_equations + 1
-        await message.answer(f'Теперь то же самое для уравнения №{num_entered_equations + 1}. :)))',
-                             parse_mode='Markdown')
+        await message.answer(f'Теперь то же самое для уравнения №{num_entered_equations + 1}. :)))')
 
 
 @dp.message_handler(state=Simplex.Function)
@@ -132,7 +129,7 @@ async def enter_function(message: types.Message, state: FSMContext):
 
     is_error, error_str, matrix_c = parse_function_coefs(function, num_variables)
     if is_error:
-        await message.answer(f"{error_str}\nПопробуй ешё раз", parse_mode='Markdown')
+        await message.answer(f"{error_str}\nПопробуй ешё раз")
         return
     async with state.proxy() as data:
         data['matrix_c'] = matrix_c
