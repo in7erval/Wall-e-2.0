@@ -39,9 +39,9 @@ keyboard_method = ReplyKeyboardMarkup(row_width=3,
 @dp.message_handler(Command('simplex'))
 async def start_simplex(message: types.Message, state: FSMContext):
     await message.answer('Это интерфейс к решению задачи поиска max/min функции при наложенных ограничениях. '
-                         f'За {hlink("решатель", "https://github.com/JettPy/Simlex-Table")} спасибо @suslik13.\n' \
                          f'{hbold("Желаешь продолжить? ;)")}\n'
-                         f'В любой момент можно ввести {STOP_WORD} и закончить 🥰',
+                         f'В любой момент можно ввести {STOP_WORD} и закончить 🥰\n'
+                         f'P.S. За {hlink("решатель", "https://github.com/JettPy/Simlex-Table")} спасибо @suslik13.\n',
                          reply_markup=keyboard_start,
                          disable_web_page_preview=True)
     await Simplex.Start.set()
@@ -224,7 +224,8 @@ async def solve_equations(message: types.Message, state: FSMContext):
                                  f'{hcode(answer)}\n'
                                  f'Для лучшей читаемости можно воспользоваться файлом ниже.')
         await message.answer_document(document=InputFile(f"answer{message.from_user.id}.txt"))
-        await message.answer('Что-то ещё?')
+        await message.answer('Что-то ещё?',
+                             reply_markup=keyboard_method)
 
 
 def is_number(s: str):
