@@ -186,8 +186,6 @@ async def choice_method(message: types.Message, state: FSMContext):
               f"Знаки: {signs}\n" \
               f"Максимизация: {'да' if is_maximize else 'нет'}"
 
-        open(f"answer{message.from_user.id}.txt", 'w')  # очистим файл
-
         app = App(variables_count=num_vars,
                   equations_count=num_equats,
                   matrix_a=matrix_a,
@@ -217,6 +215,7 @@ async def solve_equations(message: types.Message, state: FSMContext):
         data = await state.get_data()
         app = data['app']
         try:
+            open(f"answer{message.from_user.id}.txt", 'w')  # очистим файл
             if message.text == 'Гомори':
                 app.do_gomori(False)
                 logging.debug("Gomori done")
