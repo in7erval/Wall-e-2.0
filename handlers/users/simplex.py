@@ -181,7 +181,7 @@ async def solve_equations(message: types.Message, state: FSMContext):
                   signs=signs,
                   is_maximize=is_maximize)
         app.do_artificial_basis(False)
-        logging.log("Artificial Basis done")
+        logging.debug("Artificial Basis done")
         #
         # input_str = f'{num_vars}\n' \
         #             f'{num_equats}\n' \
