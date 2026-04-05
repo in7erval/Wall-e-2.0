@@ -77,6 +77,24 @@ class Chat(Base, TimeStampMixin):
         return f"<Chat(id={self.id}, title='{self.title}', type='{self.chat_type}', active={self.is_active})>"
 
 
+class MediaMessage(Base, TimeStampMixin):
+    """Модель для голосовых сообщений и видеосообщений (кружков)"""
+    __tablename__ = 'media_messages'
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    chat_id: Mapped[int] = mapped_column(BigInteger, primary_key=True, index=True)
+    person_id: Mapped[int] = mapped_column(BigInteger, index=True)
+    name: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    media_type: Mapped[str] = mapped_column(String(20), nullable=False)  # 'voice' или 'video_note'
+    file_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    file_unique_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    duration: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    file_size: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+
+    def __repr__(self) -> str:
+        return f"<MediaMessage(id={self.id}, chat_id={self.chat_id}, type='{self.media_type}')>"
+
+
 class RectanglesImg(Base, TimeStampMixin):
     """Модель для изображений с прямоугольниками"""
     __tablename__ = 'rectangles_img'

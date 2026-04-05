@@ -5,7 +5,7 @@
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from database.models import Chat, InlinePhoto, Message, RectanglesImg, User
+from database.models import Chat, InlinePhoto, MediaMessage, Message, RectanglesImg, User
 
 
 class UserRepository:
@@ -191,6 +191,80 @@ class MessageRepository:
             .offset(offset)
         )
         return list(result.scalars().all())
+
+
+class MediaMessageRepository:
+    """Репозиторий для работы с голосовыми и видеосообщениями"""
+
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def create(
+        self,
+        msg_id: int,
+        chat_id: int,
+        person_id: int,
+        name: str,
+        media_type: str,
+        file_id: str,
+        file_unique_id: str,
+        duration: int | None = None,
+        file_size: int | None = None,
+    ) -> MediaMessage:
+        """Сохранить медиасообщение"""
+        media = MediaMessage(
+            id=msg_id,
+            chat_id=chat_id,
+            person_id=person_id,
+            name=name,
+            media_type=media_type,
+            file_id=file_id,
+            file_unique_id=file_unique_id,
+            duration=duration,
+            file_size=file_size,
+        )
+        self.session.add(media)
+        await self.session.commit()
+        await self.session.refresh(media)
+        return media
+
+    async def get_by_chat_id(self, chat_id: int, media_type: str | None = None) -> list[MediaMessage]:
+        """Получить медиасообщения чата (опционально по типу)"""
+        stmt = select(MediaMessage).where(MediaMessage.chat_id == chat_id)
+        if media_type:
+            stmt = stmt.where(MediaMessage.media_type == media_type)
+        stmt = stmt.order_by(MediaMessage.created_at.desc())
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def count_by_chat_id(self, chat_id: int, media_type: str | None = None) -> int:
+        """Количество медиасообщений в чате"""
+        stmt = select(func.count(MediaMessage.id)).where(MediaMessage.chat_id == chat_id)
+        if media_type:
+            stmt = stmt.where(MediaMessage.media_type == media_type)
+        result = await self.session.execute(stmt)
+        return result.scalar()
+
+    async def count_by_person(self, person_id: int, chat_ids: list[int] | None = None) -> dict[str, int]:
+        """Количество медиасообщений пользователя по типам"""
+        stmt = select(
+            MediaMessage.media_type,
+            func.count(MediaMessage.id)
+        ).where(MediaMessage.person_id == person_id)
+        if chat_ids:
+            stmt = stmt.where(MediaMessage.chat_id.in_(chat_ids))
+        stmt = stmt.group_by(MediaMessage.media_type)
+        result = await self.session.execute(stmt)
+        return {row[0]: row[1] for row in result.all()}
+
+    async def count_in_chats(self, chat_ids: list[int]) -> dict[str, int]:
+        """Количество медиасообщений в указанных чатах по типам"""
+        stmt = select(
+            MediaMessage.media_type,
+            func.count(MediaMessage.id)
+        ).where(MediaMessage.chat_id.in_(chat_ids)).group_by(MediaMessage.media_type)
+        result = await self.session.execute(stmt)
+        return {row[0]: row[1] for row in result.all()}
 
 
 class InlinePhotoRepository:

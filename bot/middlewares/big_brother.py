@@ -82,4 +82,34 @@ class BigBrotherMiddleware(BaseMiddleware):
                             logger.error(f"[SAVE] Ошибка: {e}")
                             await message_repo.session.rollback()
 
+            # Сохранение голосовых сообщений и видеосообщений (кружков)
+            if message.voice or message.video_note:
+                repos = data.get('repos', {})
+                media_repo = repos.get('media')
+                if media_repo:
+                    try:
+                        if message.voice:
+                            media = message.voice
+                            media_type = 'voice'
+                        else:
+                            media = message.video_note
+                            media_type = 'video_note'
+
+                        await media_repo.create(
+                            msg_id=message.message_id,
+                            chat_id=message.chat.id,
+                            person_id=message.from_user.id,
+                            name=message.from_user.full_name or "Unknown",
+                            media_type=media_type,
+                            file_id=media.file_id,
+                            file_unique_id=media.file_unique_id,
+                            duration=media.duration,
+                            file_size=media.file_size,
+                        )
+                        logger.info(f"[SAVE] Сохранено {media_type}: "
+                                    f"chat={message.chat.id}, user={message.from_user.id}")
+                    except Exception as e:
+                        logger.error(f"[SAVE] Ошибка сохранения медиа: {e}")
+                        await media_repo.session.rollback()
+
         return await handler(event, data)

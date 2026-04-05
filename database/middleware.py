@@ -10,6 +10,7 @@ from database import async_session_maker
 from database.repositories import (
     ChatRepository,
     InlinePhotoRepository,
+    MediaMessageRepository,
     MessageRepository,
     RectanglesImgRepository,
     UserRepository,
@@ -29,6 +30,7 @@ class RepositoryMiddleware(BaseMiddleware):
                 data['repos'] = {
                     'user': UserRepository(session),
                     'message': MessageRepository(session),
+                    'media': MediaMessageRepository(session),
                     'photo': InlinePhotoRepository(session),
                     'rectangles': RectanglesImgRepository(session),
                     'chat': ChatRepository(session),
@@ -59,6 +61,7 @@ def with_repository(handler_func):
             repos = {
                 'user': UserRepository(session),
                 'message': MessageRepository(session),
+                'media': MediaMessageRepository(session),
                 'photo': InlinePhotoRepository(session),
                 'rectangles': RectanglesImgRepository(session),
                 'chat': ChatRepository(session),
