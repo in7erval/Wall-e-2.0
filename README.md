@@ -49,6 +49,12 @@
 - Message deletion for admins
 - Message logging (Big Brother middleware)
 
+### Web App (Mini App)
+- **Stats** — message and user statistics per chat
+- **Profile** — user card with message count and status
+- **2048** — mini-game with swipe support
+- **Admin panel** — send messages to chats, browse message history
+
 ### Admin
 - **/send_msg** — send message to any tracked chat via interactive inline keyboard
 
@@ -62,28 +68,90 @@
 | HTTP client | aiohttp |
 | TTS | gTTS |
 | Image processing | Pillow, scikit-image, numpy |
+| Web App | Telegram Mini Apps + aiohttp static |
+| CI/CD | GitHub Actions → ghcr.io |
 | Linting | ruff |
 | Containerization | Docker |
 
-## Quick Start
+## Deployment
+
+### Production (Docker image from ghcr.io)
+
+The recommended way to deploy. No source code needed on the server — just pull the pre-built image.
 
 ```bash
-# Clone
+# 1. Create a directory with config files
+mkdir ~/walle-bot && cd ~/walle-bot
+
+# 2. Create .env with required variables
+cat > .env << EOF
+BOT_TOKEN=your_bot_token
+ADMINS=123456789,987654321
+ip=your.server.ip
+DB_USER=your_db_user
+DB_PASS=your_db_pass
+DB_NAME=your_db_name
+DB_HOST=your_db_host
+EOF
+
+# 3. Generate SSL certificates (CN/SAN must match server IP)
+openssl req -newkey rsa:2048 -sha256 -nodes \
+  -keyout webhook_pkey.pem -x509 -days 3650 \
+  -out webhook_cert.pem \
+  -subj "/CN=your.server.ip" \
+  -addext "subjectAltName=IP:your.server.ip"
+
+# 4. Create docker-compose.yml
+cat > docker-compose.yml << EOF
+services:
+  walle:
+    container_name: bot-walle
+    image: ghcr.io/in7erval/wall-e-2.0:\${IMAGE_TAG:-main}
+    restart: always
+    env_file:
+      - .env
+    network_mode: host
+    volumes:
+      - ./temp_images:/app/temp_images
+      - ./webhook_cert.pem:/app/webhook_cert.pem:ro
+      - ./webhook_pkey.pem:/app/webhook_pkey.pem:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+EOF
+
+# 5. Pull and start
+docker compose pull
+docker compose up -d
+```
+
+### Update to latest version
+
+```bash
+cd ~/walle-bot
+docker compose pull
+docker compose up -d
+```
+
+### Deploy a specific version
+
+```bash
+IMAGE_TAG=v1.0.0 docker compose pull
+IMAGE_TAG=v1.0.0 docker compose up -d
+```
+
+### Local development
+
+```bash
 git clone https://github.com/in7erval/Wall-e-2.0.git
 cd Wall-e-2.0
 
-# Setup
-cp .env.dist .env  # fill in BOT_TOKEN, ADMINS, ip, DB_*
+cp .env.dist .env  # fill in required variables
 pip install -r requirements.txt
-
-# Generate SSL certificates (CN/SAN must match server IP)
 bash ssl_generate.sh
 
-# Run
 python app.py
 ```
 
-### Docker
+### Local Docker build
 
 ```bash
 docker compose up --build
@@ -101,6 +169,7 @@ Wall-e-2.0/
 │   ├── services.py         # Startup/shutdown, bot commands
 │   ├── filters/            # AdminFilter
 │   ├── middlewares/         # BigBrother, Throttling
+│   ├── web_api.py          # REST API for Web App
 │   └── routers/
 │       ├── users.py        # /start, /help, keyboards
 │       ├── entertainment.py # Text gen, TTS, animals, dice
@@ -108,6 +177,7 @@ Wall-e-2.0/
 │       ├── content.py      # Jokes, quotes, horoscope, facts
 │       ├── groups.py       # Group management
 │       ├── admin.py        # /send_msg (admin only)
+│       ├── web_app.py      # /webapp (Mini App)
 │       └── photo_rectangles.py
 ├── database/
 │   ├── __init__.py         # Engine, session, on_startup
@@ -117,9 +187,12 @@ Wall-e-2.0/
 ├── utils/
 │   ├── misc/               # Markov chain, photos, random helpers
 │   └── simplex/            # Simplex method (standalone)
+├── web_app/                # Telegram Mini App (HTML/CSS/JS)
 ├── alembic/                # Database migrations
+├── .github/workflows/      # CI/CD (build & push to ghcr.io)
 ├── Dockerfile
-├── docker-compose.yml
+├── docker-compose.yml      # Local development
+├── docker-compose.prod.yml # Production (image from ghcr.io)
 └── ruff.toml
 ```
 
