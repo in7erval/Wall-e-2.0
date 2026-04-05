@@ -1,0 +1,310 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--tg-theme-bg-color, #ffffff);
+    color: var(--tg-theme-text-color, #000000);
+    padding: 0 16px 80px;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+h1 {
+    font-size: 22px;
+    margin: 16px 0 12px;
+}
+
+h2 {
+    font-size: 17px;
+    margin: 20px 0 10px;
+    color: var(--tg-theme-hint-color, #999);
+}
+
+/* Навигация */
+.tabs {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    background-color: var(--tg-theme-secondary-bg-color, #f0f0f0);
+    border-top: 1px solid var(--tg-theme-hint-color, #ccc);
+    z-index: 100;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.tab {
+    flex: 1;
+    padding: 12px 0;
+    border: none;
+    background: none;
+    font-size: 22px;
+    cursor: pointer;
+    opacity: 0.4;
+    transition: opacity 0.2s;
+}
+
+.tab.active {
+    opacity: 1;
+}
+
+/* Страницы */
+.page {
+    display: none;
+}
+
+.page.active {
+    display: block;
+}
+
+/* Карточки */
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 10px;
+    margin: 12px 0;
+}
+
+.card {
+    background-color: var(--tg-theme-secondary-bg-color, #f0f0f0);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+}
+
+.card p {
+    font-size: 14px;
+    color: var(--tg-theme-hint-color, #999);
+    line-height: 1.5;
+}
+
+.card-value {
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.card-label {
+    font-size: 12px;
+    color: var(--tg-theme-hint-color, #999);
+    margin-top: 4px;
+}
+
+/* Топ */
+.top-list {
+    background-color: var(--tg-theme-secondary-bg-color, #f0f0f0);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.top-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    gap: 12px;
+    border-bottom: 1px solid var(--tg-theme-bg-color, #fff);
+}
+
+.top-item:last-child {
+    border-bottom: none;
+}
+
+.top-rank {
+    font-size: 16px;
+    font-weight: 700;
+    width: 24px;
+    text-align: center;
+}
+
+.top-name {
+    flex: 1;
+    font-size: 15px;
+}
+
+.top-count {
+    font-size: 14px;
+    color: var(--tg-theme-hint-color, #999);
+}
+
+/* Профиль */
+.profile-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px;
+    margin: 12px 0;
+    background-color: var(--tg-theme-secondary-bg-color, #f0f0f0);
+    border-radius: 16px;
+}
+
+.profile-avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background-color: var(--tg-theme-button-color, #3390ec);
+    color: var(--tg-theme-button-text-color, #fff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.profile-name {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.profile-username {
+    font-size: 14px;
+    color: var(--tg-theme-hint-color, #999);
+    margin-top: 2px;
+}
+
+/* Игра 2048 */
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 12px 0;
+}
+
+.game-score {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.game-board {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    background-color: var(--tg-theme-hint-color, #bbada0);
+    border-radius: 12px;
+    padding: 8px;
+    aspect-ratio: 1;
+    max-width: 360px;
+    margin: 0 auto;
+    touch-action: none;
+}
+
+.game-cell {
+    aspect-ratio: 1;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 24px;
+    transition: all 0.1s ease;
+}
+
+.game-hint {
+    text-align: center;
+    font-size: 13px;
+    color: var(--tg-theme-hint-color, #999);
+    margin-top: 12px;
+}
+
+/* Цвета ячеек 2048 */
+.cell-0    { background: var(--tg-theme-secondary-bg-color, #cdc1b4); }
+.cell-2    { background: #eee4da; color: #776e65; }
+.cell-4    { background: #ede0c8; color: #776e65; }
+.cell-8    { background: #f2b179; color: #f9f6f2; }
+.cell-16   { background: #f59563; color: #f9f6f2; }
+.cell-32   { background: #f67c5f; color: #f9f6f2; }
+.cell-64   { background: #f65e3b; color: #f9f6f2; }
+.cell-128  { background: #edcf72; color: #f9f6f2; font-size: 20px; }
+.cell-256  { background: #edcc61; color: #f9f6f2; font-size: 20px; }
+.cell-512  { background: #edc850; color: #f9f6f2; font-size: 20px; }
+.cell-1024 { background: #edc53f; color: #f9f6f2; font-size: 16px; }
+.cell-2048 { background: #edc22e; color: #f9f6f2; font-size: 16px; }
+
+/* Формы */
+.form-group {
+    margin: 12px 0;
+}
+
+.form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    color: var(--tg-theme-hint-color, #999);
+}
+
+.input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--tg-theme-hint-color, #ccc);
+    border-radius: 10px;
+    font-size: 15px;
+    background-color: var(--tg-theme-secondary-bg-color, #f0f0f0);
+    color: var(--tg-theme-text-color, #000);
+    -webkit-appearance: none;
+}
+
+.input:focus {
+    outline: none;
+    border-color: var(--tg-theme-button-color, #3390ec);
+}
+
+textarea.input {
+    resize: vertical;
+    font-family: inherit;
+}
+
+/* Кнопки */
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    background-color: var(--tg-theme-secondary-bg-color, #f0f0f0);
+    color: var(--tg-theme-text-color, #000);
+}
+
+.btn-primary {
+    width: 100%;
+    padding: 14px;
+    background-color: var(--tg-theme-button-color, #3390ec);
+    color: var(--tg-theme-button-text-color, #fff);
+    font-size: 16px;
+    margin-top: 8px;
+}
+
+.btn-primary:active {
+    opacity: 0.8;
+}
+
+/* Статус */
+.status {
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 14px;
+    margin-top: 12px;
+}
+
+.status.success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status.error {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* Утилиты */
+.loading {
+    text-align: center;
+    padding: 20px;
+    color: var(--tg-theme-hint-color, #999);
+    font-size: 14px;
+}

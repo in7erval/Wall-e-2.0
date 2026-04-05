@@ -126,6 +126,34 @@ class MessageRepository:
         )
         return result.scalar()
 
+    async def count(self) -> int:
+        """Получить общее количество сообщений"""
+        result = await self.session.execute(
+            select(func.count(Message.id))
+        )
+        return result.scalar()
+
+    async def count_by_person(self, person_id: int) -> int:
+        """Получить количество сообщений пользователя"""
+        result = await self.session.execute(
+            select(func.count(Message.id)).where(Message.person_id == person_id)
+        )
+        return result.scalar()
+
+    async def top_users(self, limit: int = 10) -> list[tuple[int, str, int]]:
+        """Топ пользователей по количеству сообщений"""
+        result = await self.session.execute(
+            select(
+                Message.person_id,
+                Message.name,
+                func.count(Message.id).label("cnt")
+            )
+            .group_by(Message.person_id, Message.name)
+            .order_by(func.count(Message.id).desc())
+            .limit(limit)
+        )
+        return [(row[0], row[1], row[2]) for row in result.all()]
+
 
 class InlinePhotoRepository:
     """Репозиторий для работы с inline фото"""
@@ -227,3 +255,10 @@ class ChatRepository:
             select(Chat).where(Chat.is_active).order_by(Chat.title)
         )
         return list(result.scalars().all())
+
+    async def count_active(self) -> int:
+        """Получить количество активных чатов"""
+        result = await self.session.execute(
+            select(func.count(Chat.id)).where(Chat.is_active)
+        )
+        return result.scalar()

@@ -12,6 +12,7 @@ from bot.routers import (
     photo_rectangles,
     reactions,
     users,
+    web_app,
 )
 
 
@@ -25,3 +26,4 @@ def register_routers(dp: Dispatcher):
     dp.include_router(games.router)
     dp.include_router(content.router)
     dp.include_router(photo_rectangles.router)
+    dp.include_router(web_app.router)

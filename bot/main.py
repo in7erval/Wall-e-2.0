@@ -3,6 +3,7 @@
 """
 import asyncio
 import logging
+from pathlib import Path
 
 from aiogram.types import FSInputFile
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
@@ -14,9 +15,13 @@ from bot.filters import setup_filters
 from bot.handlers import register_routers
 from bot.middlewares import setup_middlewares
 from bot.services import on_shutdown, on_startup
+from bot.web_api import setup_api_routes
 from database import on_startup as db_on_startup
 
 logger = logging.getLogger(__name__)
+
+# Путь к директории web_app
+WEB_APP_DIR = Path(__file__).parent.parent / "web_app"
 
 
 async def on_bot_startup(**kwargs):
@@ -63,6 +68,16 @@ async def run_webhook():
     webhook_handler = SimpleRequestHandler(dispatcher=dp, bot=bot)
     webhook_handler.register(app, path=WEBHOOK_PATH)
     setup_application(app, dp, bot=bot)
+
+    # API endpoints для Web App
+    setup_api_routes(app)
+
+    # Раздача статики Web App
+    if WEB_APP_DIR.exists():
+        app.router.add_static("/webapp/", path=str(WEB_APP_DIR), name="webapp")
+        # index.html по корневому пути /webapp/
+        app.router.add_get("/webapp", lambda r: web.HTTPFound("/webapp/index.html"))
+        logger.info("Web App доступен: https://...:%s/webapp/", WEBHOOK_PORT)
 
     # Запуск с SSL
     runner = web.AppRunner(app)

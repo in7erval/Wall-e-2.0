@@ -73,7 +73,7 @@ git clone https://github.com/in7erval/Wall-e-2.0.git
 cd Wall-e-2.0
 
 # Setup
-cp .env.example .env  # fill in BOT_TOKEN, ADMINS, ip, DB_*
+cp .env.dist .env  # fill in BOT_TOKEN, ADMINS, ip, DB_*
 pip install -r requirements.txt
 
 # Generate SSL certificates (CN/SAN must match server IP)

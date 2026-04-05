@@ -61,6 +61,7 @@ async def set_default_commands(bot: Bot):
 
         # Утилиты
         BotCommand(command="photo_rectangles", description="Обработать фото"),
+        BotCommand(command="webapp", description="Открыть Web App"),
     ]
     await bot.set_my_commands(commands)
 
