@@ -1,10 +1,12 @@
 """
 Роутер для Web App (Telegram Mini App)
+Работает только в личном чате с ботом.
 """
 
 from aiogram import F, Router, html
+from aiogram.enums import ChatType
 from aiogram.filters import Command
-from aiogram.types import InlineKeyboardMarkup, Message, WebAppInfo
+from aiogram.types import Message, WebAppInfo
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 router = Router()
@@ -13,30 +15,25 @@ router = Router()
 WEB_APP_URL = "https://walle-bot.duckdns.org/webapp/index.html"
 
 
-def create_web_app_keyboard(is_group: bool = False) -> InlineKeyboardMarkup:
-    """Клавиатура с Web App кнопкой"""
-    builder = InlineKeyboardBuilder()
-    if is_group:
-        # В группах web_app кнопка запрещена — используем url
-        builder.button(text="🚀 Открыть Web App", url=WEB_APP_URL)
-    else:
-        # В личном чате — полноценная Mini App кнопка
-        builder.button(text="🚀 Открыть Web App", web_app=WebAppInfo(url=WEB_APP_URL))
-    return builder.as_markup()
-
-
-@router.message(Command("webapp"))
+@router.message(Command("webapp"), F.chat.type == ChatType.PRIVATE)
 async def cmd_webapp(message: Message) -> None:
-    """Открыть Web App"""
-    is_group = message.chat.type in ("group", "supergroup")
+    """Открыть Web App (только в личном чате)"""
+    builder = InlineKeyboardBuilder()
+    builder.button(text="🚀 Открыть Web App", web_app=WebAppInfo(url=WEB_APP_URL))
     await message.answer(
         text=(
             "🌐 <b>Wall-e Web App</b>\n\n"
             "Статистика, профиль, игра 2048 и админ-панель — "
             "всё в одном приложении внутри Telegram."
         ),
-        reply_markup=create_web_app_keyboard(is_group=is_group),
+        reply_markup=builder.as_markup(),
     )
+
+
+@router.message(Command("webapp"))
+async def cmd_webapp_group(message: Message) -> None:
+    """Ответ на /webapp в группе"""
+    await message.answer("🌐 Web App доступен только в личном чате с ботом.")
 
 
 @router.message(F.web_app_data)

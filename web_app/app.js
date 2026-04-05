@@ -2,7 +2,6 @@
  * Wall-e Web App — главный модуль
  */
 
-// Инициализация Telegram Web App
 const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
@@ -41,13 +40,19 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+function formatTime(isoStr) {
+    if (!isoStr) return '';
+    const d = new Date(isoStr);
+    const pad = n => String(n).padStart(2, '0');
+    return `${pad(d.getDate())}.${pad(d.getMonth() + 1)} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 // ====== Навигация ======
 
 const tabs = document.querySelectorAll('.tab');
 const pages = document.querySelectorAll('.page');
 const adminTab = document.querySelector('.tab[data-tab="admin"]');
 
-// Скрываем админ-таб по умолчанию
 if (adminTab) adminTab.style.display = 'none';
 
 tabs.forEach(tab => {
@@ -74,25 +79,11 @@ async function loadStats() {
         apiFetch('/top'),
     ]);
 
-    if (stats) {
-        // Показываем название чата если есть
-        const title = document.getElementById('stats-title');
-        if (stats.chat_title) {
-            title.textContent = '📊 ' + stats.chat_title;
-        }
-
+    if (stats && !stats.error) {
         document.getElementById('stat-users').textContent = formatNumber(stats.users);
         document.getElementById('stat-messages').textContent = formatNumber(stats.messages);
+        document.getElementById('stat-chats').textContent = formatNumber(stats.chats);
 
-        // Скрываем карточку "Чатов" если мы внутри чата
-        const chatsCard = document.getElementById('stat-chats-card');
-        if (stats.chats <= 1 && stats.chat_title) {
-            chatsCard.style.display = 'none';
-        } else {
-            document.getElementById('stat-chats').textContent = formatNumber(stats.chats);
-        }
-
-        // Показываем админ-таб если пользователь — админ
         if (stats.is_admin && adminTab) {
             adminTab.style.display = '';
         }
@@ -143,22 +134,24 @@ async function loadProfile() {
 // ====== Админ-панель ======
 
 let adminLoaded = false;
+let adminChats = [];
 
 async function loadAdmin() {
     const data = await apiFetch('/chats');
 
     if (data && !data.error) {
+        adminChats = data.chats;
         document.getElementById('admin-content').style.display = 'none';
         document.getElementById('admin-panel').style.display = 'block';
 
-        const select = document.getElementById('admin-chat');
-        select.innerHTML = data.chats.map(c =>
+        // Заполняем оба селекта чатов
+        const chatOptions = adminChats.map(c =>
             `<option value="${c.id}">${escapeHtml(c.title || String(c.id))} (${c.type})</option>`
         ).join('');
 
-        if (data.chats.length === 0) {
-            select.innerHTML = '<option disabled>Нет активных чатов</option>';
-        }
+        const emptyOption = '<option disabled>Нет активных чатов</option>';
+        document.getElementById('admin-chat').innerHTML = adminChats.length ? chatOptions : emptyOption;
+        document.getElementById('admin-messages-chat').innerHTML = adminChats.length ? chatOptions : emptyOption;
     } else {
         document.getElementById('admin-content').style.display = 'none';
         document.getElementById('admin-denied').style.display = 'block';
@@ -167,6 +160,7 @@ async function loadAdmin() {
     adminLoaded = true;
 }
 
+// Отправка сообщения
 document.getElementById('admin-send')?.addEventListener('click', async () => {
     const chatId = document.getElementById('admin-chat').value;
     const text = document.getElementById('admin-text').value.trim();
@@ -196,6 +190,59 @@ function showAdminStatus(msg, type) {
     el.className = 'status ' + type;
     el.style.display = 'block';
     setTimeout(() => el.style.display = 'none', 4000);
+}
+
+// Просмотр сообщений
+let messagesOffset = 0;
+let currentMessagesChatId = null;
+
+document.getElementById('admin-load-messages')?.addEventListener('click', () => {
+    messagesOffset = 0;
+    currentMessagesChatId = document.getElementById('admin-messages-chat').value;
+    document.getElementById('messages-list').innerHTML = '';
+    loadMessages();
+});
+
+document.getElementById('admin-load-more')?.addEventListener('click', () => {
+    loadMessages();
+});
+
+async function loadMessages() {
+    if (!currentMessagesChatId) return;
+
+    const data = await apiFetch(`/messages?chat_id=${currentMessagesChatId}&offset=${messagesOffset}&limit=50`);
+    if (!data || data.error) return;
+
+    const listEl = document.getElementById('messages-list');
+    const loadMoreBtn = document.getElementById('admin-load-more');
+    listEl.style.display = 'block';
+
+    // Показать total при первой загрузке
+    if (messagesOffset === 0) {
+        listEl.innerHTML = `<div class="msg-total">Всего сообщений: ${data.total}</div>`;
+    }
+
+    if (data.messages.length === 0 && messagesOffset === 0) {
+        listEl.innerHTML = '<div class="loading">Нет сообщений</div>';
+        loadMoreBtn.style.display = 'none';
+        return;
+    }
+
+    const html = data.messages.map(m =>
+        `<div class="msg-item">
+            <div class="msg-header">
+                <span class="msg-name">${escapeHtml(m.name)}</span>
+                <span class="msg-time">${formatTime(m.created_at)}</span>
+            </div>
+            <div class="msg-text">${escapeHtml(m.text)}</div>
+        </div>`
+    ).join('');
+
+    listEl.insertAdjacentHTML('beforeend', html);
+    messagesOffset += data.messages.length;
+
+    // Показать/скрыть кнопку "ещё"
+    loadMoreBtn.style.display = messagesOffset < data.total ? 'block' : 'none';
 }
 
 // ====== Игра 2048 ======

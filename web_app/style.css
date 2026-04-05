@@ -301,6 +301,55 @@ textarea.input {
     color: #721c24;
 }
 
+/* Список сообщений (админ) */
+.messages-list {
+    margin-top: 12px;
+    max-height: 60vh;
+    overflow-y: auto;
+    border-radius: 12px;
+    background-color: var(--tg-theme-secondary-bg-color, #f0f0f0);
+}
+
+.msg-item {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--tg-theme-bg-color, #fff);
+}
+
+.msg-item:last-child {
+    border-bottom: none;
+}
+
+.msg-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 4px;
+}
+
+.msg-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--tg-theme-button-color, #3390ec);
+}
+
+.msg-time {
+    font-size: 11px;
+    color: var(--tg-theme-hint-color, #999);
+}
+
+.msg-text {
+    font-size: 14px;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.msg-total {
+    text-align: center;
+    font-size: 13px;
+    color: var(--tg-theme-hint-color, #999);
+    padding: 8px;
+}
+
 /* Утилиты */
 .loading {
     text-align: center;

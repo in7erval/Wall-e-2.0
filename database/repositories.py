@@ -133,33 +133,45 @@ class MessageRepository:
         )
         return result.scalar()
 
-    async def count_by_person(self, person_id: int, chat_id: int | None = None) -> int:
-        """Получить количество сообщений пользователя (опционально в конкретном чате)"""
+    async def count_by_person(self, person_id: int, chat_ids: list[int] | None = None) -> int:
+        """Получить количество сообщений пользователя (опционально в конкретных чатах)"""
         stmt = select(func.count(Message.id)).where(Message.person_id == person_id)
-        if chat_id is not None:
-            stmt = stmt.where(Message.chat_id == chat_id)
+        if chat_ids:
+            stmt = stmt.where(Message.chat_id.in_(chat_ids))
         result = await self.session.execute(stmt)
         return result.scalar()
 
-    async def count_unique_users(self, chat_id: int | None = None) -> int:
-        """Количество уникальных пользователей (опционально в конкретном чате)"""
-        stmt = select(func.count(func.distinct(Message.person_id)))
-        if chat_id is not None:
-            stmt = stmt.where(Message.chat_id == chat_id)
-        result = await self.session.execute(stmt)
-        return result.scalar()
-
-    async def top_users(self, limit: int = 10, chat_id: int | None = None) -> list[tuple[int, str, int]]:
-        """Топ пользователей по количеству сообщений (опционально в конкретном чате)"""
-        stmt = (
-            select(
-                Message.person_id,
-                Message.name,
-                func.count(Message.id).label("cnt")
-            )
+    async def get_chat_ids_by_person(self, person_id: int) -> list[int]:
+        """Получить ID чатов, в которых пользователь писал сообщения"""
+        result = await self.session.execute(
+            select(Message.chat_id).where(Message.person_id == person_id).distinct()
         )
-        if chat_id is not None:
-            stmt = stmt.where(Message.chat_id == chat_id)
+        return [row[0] for row in result.all()]
+
+    async def count_unique_users(self, chat_ids: list[int] | None = None) -> int:
+        """Количество уникальных пользователей (опционально в конкретных чатах)"""
+        stmt = select(func.count(func.distinct(Message.person_id)))
+        if chat_ids:
+            stmt = stmt.where(Message.chat_id.in_(chat_ids))
+        result = await self.session.execute(stmt)
+        return result.scalar()
+
+    async def count_in_chats(self, chat_ids: list[int]) -> int:
+        """Количество сообщений в указанных чатах"""
+        result = await self.session.execute(
+            select(func.count(Message.id)).where(Message.chat_id.in_(chat_ids))
+        )
+        return result.scalar()
+
+    async def top_users(self, limit: int = 10, chat_ids: list[int] | None = None) -> list[tuple[int, str, int]]:
+        """Топ пользователей по количеству сообщений (опционально в конкретных чатах)"""
+        stmt = select(
+            Message.person_id,
+            Message.name,
+            func.count(Message.id).label("cnt")
+        )
+        if chat_ids:
+            stmt = stmt.where(Message.chat_id.in_(chat_ids))
         stmt = (
             stmt
             .group_by(Message.person_id, Message.name)
@@ -168,6 +180,17 @@ class MessageRepository:
         )
         result = await self.session.execute(stmt)
         return [(row[0], row[1], row[2]) for row in result.all()]
+
+    async def get_paginated(self, chat_id: int, limit: int = 50, offset: int = 0) -> list[Message]:
+        """Получить сообщения чата с пагинацией (новые первыми)"""
+        result = await self.session.execute(
+            select(Message)
+            .where(Message.chat_id == chat_id)
+            .order_by(Message.created_at.desc())
+            .limit(limit)
+            .offset(offset)
+        )
+        return list(result.scalars().all())
 
 
 class InlinePhotoRepository:
