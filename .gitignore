@@ -147,3 +147,6 @@ temp_images/
 
 # Qwen
 .qwen/
+
+# Claude Code (contains sensitive info)
+CLAUDE.md
