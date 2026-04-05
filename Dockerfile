@@ -15,6 +15,6 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-EXPOSE 8443
+EXPOSE 8443 443
 
 CMD ["python", "app.py"]

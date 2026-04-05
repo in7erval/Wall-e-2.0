@@ -7,7 +7,9 @@ services:
       - .env
     ports:
       - "8443:8443"
+      - "443:443"
     volumes:
       - ./temp_images:/app/temp_images
       - ./webhook_cert.pem:/app/webhook_cert.pem:ro
       - ./webhook_pkey.pem:/app/webhook_pkey.pem:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
