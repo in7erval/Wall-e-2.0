@@ -3,6 +3,7 @@
 """
 import asyncio
 import logging
+import ssl
 from pathlib import Path
 
 from aiogram.types import FSInputFile
@@ -22,6 +23,11 @@ logger = logging.getLogger(__name__)
 
 # Путь к директории web_app
 WEB_APP_DIR = Path(__file__).parent.parent / "web_app"
+
+# Let's Encrypt сертификаты для Web App (порт 443)
+LE_CERT = Path("/etc/letsencrypt/live/walle-bot.duckdns.org/fullchain.pem")
+LE_KEY = Path("/etc/letsencrypt/live/walle-bot.duckdns.org/privkey.pem")
+WEBAPP_PORT = 443
 
 
 async def on_bot_startup(**kwargs):
@@ -61,43 +67,49 @@ async def run_webhook():
     dp.startup.register(on_bot_startup)
     dp.shutdown.register(on_bot_shutdown)
 
-    # Создание aiohttp приложения
+    # === Webhook приложение (порт 8443, self-signed SSL) ===
     app = web.Application()
-
-    # Стандартный обработчик webhook от aiogram
     webhook_handler = SimpleRequestHandler(dispatcher=dp, bot=bot)
     webhook_handler.register(app, path=WEBHOOK_PATH)
     setup_application(app, dp, bot=bot)
 
-    # API endpoints для Web App
-    setup_api_routes(app)
-
-    # Раздача статики Web App
-    if WEB_APP_DIR.exists():
-        app.router.add_static("/webapp/", path=str(WEB_APP_DIR), name="webapp")
-        # index.html по корневому пути /webapp/
-        app.router.add_get("/webapp", lambda r: web.HTTPFound("/webapp/index.html"))
-        logger.info("Web App доступен: https://...:%s/webapp/", WEBHOOK_PORT)
-
-    # Запуск с SSL
     runner = web.AppRunner(app)
     await runner.setup()
+    webhook_site = web.TCPSite(runner, host=WEBAPP_HOST, port=WEBHOOK_PORT, ssl_context=ssl_context)
+    await webhook_site.start()
+    logger.info(f"Webhook сервер запущен на {WEBAPP_HOST}:{WEBHOOK_PORT}")
 
-    site = web.TCPSite(
-        runner,
-        host=WEBAPP_HOST,
-        port=WEBHOOK_PORT,
-        ssl_context=ssl_context
-    )
-    await site.start()
+    # === Web App (порт 443, Let's Encrypt SSL) ===
+    webapp_runner = None
+    if LE_CERT.exists() and LE_KEY.exists() and WEB_APP_DIR.exists():
+        le_ssl = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        le_ssl.load_cert_chain(str(LE_CERT), str(LE_KEY))
 
-    logger.info(f"Сервер запущен на {WEBAPP_HOST}:{WEBHOOK_PORT}")
+        webapp_app = web.Application()
+
+        # API endpoints
+        setup_api_routes(webapp_app)
+
+        # Раздача статики
+        webapp_app.router.add_get("/", lambda r: web.HTTPFound("/webapp/index.html"))
+        webapp_app.router.add_get("/webapp", lambda r: web.HTTPFound("/webapp/index.html"))
+        webapp_app.router.add_static("/webapp/", path=str(WEB_APP_DIR), name="webapp")
+
+        webapp_runner = web.AppRunner(webapp_app)
+        await webapp_runner.setup()
+        webapp_site = web.TCPSite(webapp_runner, host=WEBAPP_HOST, port=WEBAPP_PORT, ssl_context=le_ssl)
+        await webapp_site.start()
+        logger.info("Web App запущен на https://walle-bot.duckdns.org/webapp/")
+    else:
+        logger.warning("Let's Encrypt сертификаты не найдены, Web App не запущен")
 
     try:
         while True:
             await asyncio.sleep(3600)
     except (asyncio.CancelledError, KeyboardInterrupt):
         await runner.cleanup()
+        if webapp_runner:
+            await webapp_runner.cleanup()
 
 
 if __name__ == '__main__':

@@ -7,12 +7,10 @@ from aiogram.filters import Command
 from aiogram.types import InlineKeyboardMarkup, Message, WebAppInfo
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from bot.config import IP, WEBHOOK_PORT
-
 router = Router()
 
-# URL Web App — раздаётся с того же сервера
-WEB_APP_URL = f"https://{IP}:{WEBHOOK_PORT}/webapp/index.html"
+# URL Web App — Let's Encrypt SSL на порту 443
+WEB_APP_URL = "https://walle-bot.duckdns.org/webapp/index.html"
 
 
 def create_web_app_keyboard() -> InlineKeyboardMarkup:
