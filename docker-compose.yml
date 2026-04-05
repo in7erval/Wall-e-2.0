@@ -8,6 +8,7 @@ services:
     network_mode: host
     volumes:
       - ./temp_images:/app/temp_images
+      - ./media_files:/app/media_files
       - ./webhook_cert.pem:/app/webhook_cert.pem:ro
       - ./webhook_pkey.pem:/app/webhook_pkey.pem:ro
       - /etc/letsencrypt:/etc/letsencrypt:ro

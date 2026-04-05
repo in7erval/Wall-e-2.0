@@ -137,6 +137,7 @@ dmypy.json
 bot.log
 logs/
 temp_images/
+media_files/
 
 # IDE
 .idea/

@@ -37,6 +37,7 @@ bot.log
 
 # Temporary files
 temp_images/
+media_files/
 *.jpg
 *.png
 *.pem

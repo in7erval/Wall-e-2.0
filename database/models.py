@@ -90,6 +90,7 @@ class MediaMessage(Base, TimeStampMixin):
     file_unique_id: Mapped[str] = mapped_column(String(255), nullable=False)
     duration: Mapped[int | None] = mapped_column(Integer, nullable=True)
     file_size: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    local_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     def __repr__(self) -> str:
         return f"<MediaMessage(id={self.id}, chat_id={self.chat_id}, type='{self.media_type}')>"

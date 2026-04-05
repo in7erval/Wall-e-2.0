@@ -29,6 +29,7 @@ def upgrade() -> None:
         sa.Column('file_unique_id', sa.String(length=255), nullable=False),
         sa.Column('duration', sa.Integer(), nullable=True),
         sa.Column('file_size', sa.BigInteger(), nullable=True),
+        sa.Column('local_path', sa.String(length=500), nullable=True),
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
         sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
         sa.PrimaryKeyConstraint('id', 'chat_id'),

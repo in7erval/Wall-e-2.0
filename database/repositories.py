@@ -210,6 +210,7 @@ class MediaMessageRepository:
         file_unique_id: str,
         duration: int | None = None,
         file_size: int | None = None,
+        local_path: str | None = None,
     ) -> MediaMessage:
         """Сохранить медиасообщение"""
         media = MediaMessage(
@@ -222,6 +223,7 @@ class MediaMessageRepository:
             file_unique_id=file_unique_id,
             duration=duration,
             file_size=file_size,
+            local_path=local_path,
         )
         self.session.add(media)
         await self.session.commit()
