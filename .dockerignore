@@ -40,8 +40,6 @@ temp_images/
 *.jpg
 *.png
 *.pem
-!webhook_cert.pem
-!webhook_pkey.pem
 
 # Environment
 .env

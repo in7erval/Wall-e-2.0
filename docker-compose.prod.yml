@@ -1,0 +1,23 @@
+# Production docker-compose для сервера.
+# Использует готовый образ из GitHub Container Registry.
+#
+# Использование:
+#   docker compose -f docker-compose.prod.yml pull
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# Для конкретной версии:
+#   IMAGE_TAG=v1.0.0 docker compose -f docker-compose.prod.yml up -d
+
+services:
+  walle:
+    container_name: bot-walle
+    image: ghcr.io/in7erval/wall-e-2.0:${IMAGE_TAG:-main}
+    restart: always
+    env_file:
+      - .env
+    network_mode: host
+    volumes:
+      - ./temp_images:/app/temp_images
+      - ./webhook_cert.pem:/app/webhook_cert.pem:ro
+      - ./webhook_pkey.pem:/app/webhook_pkey.pem:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
