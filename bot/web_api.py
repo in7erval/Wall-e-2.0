@@ -11,7 +11,7 @@ from aiohttp import web
 
 from bot.config import ADMINS, BOT_TOKEN
 from database import async_session_maker
-from database.repositories import ChatRepository, MessageRepository, UserRepository
+from database.repositories import ChatRepository, MediaMessageRepository, MessageRepository, UserRepository
 
 logger = logging.getLogger(__name__)
 
@@ -252,6 +252,48 @@ async def api_send_message(request: web.Request) -> web.Response:
         return web.json_response({"error": str(e)}, status=500)
 
 
+async def api_media(request: web.Request) -> web.Response:
+    """GET /api/media?chat_id=X&offset=0&limit=50&type=voice|video_note — медиасообщения (только для админов)"""
+    data = parse_request(request)
+    if not is_admin(data):
+        return web.json_response({"error": "forbidden"}, status=403)
+
+    try:
+        chat_id = int(request.query["chat_id"])
+    except (KeyError, ValueError):
+        return web.json_response({"error": "chat_id required"}, status=400)
+
+    offset = int(request.query.get("offset", "0"))
+    limit = min(int(request.query.get("limit", "50")), 100)
+    media_type = request.query.get("type")  # voice, video_note или None (все)
+
+    async with async_session_maker() as session:
+        media_repo = MediaMessageRepository(session)
+        items = await media_repo.get_by_chat_id(chat_id, media_type=media_type)
+        total = len(items)
+        items = items[offset:offset + limit]
+
+    return web.json_response({
+        "media": [
+            {
+                "id": m.id,
+                "name": m.name,
+                "person_id": m.person_id,
+                "media_type": m.media_type,
+                "file_id": m.file_id,
+                "duration": m.duration,
+                "file_size": m.file_size,
+                "local_path": m.local_path,
+                "created_at": m.created_at.isoformat() if m.created_at else None,
+            }
+            for m in items
+        ],
+        "total": total,
+        "offset": offset,
+        "limit": limit,
+    })
+
+
 def setup_api_routes(app: web.Application):
     """Регистрация API routes"""
     app.router.add_get("/api/stats", api_stats)
@@ -260,3 +302,4 @@ def setup_api_routes(app: web.Application):
     app.router.add_get("/api/chats", api_chats)
     app.router.add_get("/api/messages", api_messages)
     app.router.add_post("/api/send", api_send_message)
+    app.router.add_get("/api/media", api_media)

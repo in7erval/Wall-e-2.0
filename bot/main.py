@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 # Путь к директории web_app
 WEB_APP_DIR = Path(__file__).parent.parent / "web_app"
+MEDIA_FILES_DIR = Path(__file__).parent.parent / "media_files"
 
 # Let's Encrypt сертификаты для Web App (порт 443)
 LE_CERT = Path("/etc/letsencrypt/live/walle-bot.duckdns.org/fullchain.pem")
@@ -89,6 +90,35 @@ async def run_webhook():
 
         # API endpoints
         setup_api_routes(webapp_app)
+
+        # Раздача медиафайлов (только для админов)
+        from bot.web_api import is_admin, parse_request
+
+        async def serve_media(request: web.Request) -> web.StreamResponse:
+            # Аутентификация: заголовок или query-параметр (для <audio>/<video>)
+            data = parse_request(request)
+            if not data:
+                init_data_query = request.query.get("init_data", "")
+                if init_data_query:
+                    from bot.web_api import verify_telegram_data
+                    data = verify_telegram_data(init_data_query)
+            if not is_admin(data):
+                return web.json_response({"error": "forbidden"}, status=403)
+
+            # media_type/filename, например voice/123_456.ogg
+            rel_path = request.match_info["path"]
+            file_path = MEDIA_FILES_DIR / rel_path
+            if not file_path.exists() or not file_path.is_file():
+                return web.json_response({"error": "not found"}, status=404)
+            # Проверка что путь не выходит за пределы MEDIA_FILES_DIR
+            try:
+                file_path.resolve().relative_to(MEDIA_FILES_DIR.resolve())
+            except ValueError:
+                return web.json_response({"error": "forbidden"}, status=403)
+
+            return web.FileResponse(file_path)
+
+        webapp_app.router.add_get("/media/{path:.+}", serve_media)
 
         # Раздача статики
         webapp_app.router.add_get("/", lambda r: web.HTTPFound("/webapp/index.html"))
