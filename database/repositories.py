@@ -133,25 +133,40 @@ class MessageRepository:
         )
         return result.scalar()
 
-    async def count_by_person(self, person_id: int) -> int:
-        """Получить количество сообщений пользователя"""
-        result = await self.session.execute(
-            select(func.count(Message.id)).where(Message.person_id == person_id)
-        )
+    async def count_by_person(self, person_id: int, chat_id: int | None = None) -> int:
+        """Получить количество сообщений пользователя (опционально в конкретном чате)"""
+        stmt = select(func.count(Message.id)).where(Message.person_id == person_id)
+        if chat_id is not None:
+            stmt = stmt.where(Message.chat_id == chat_id)
+        result = await self.session.execute(stmt)
         return result.scalar()
 
-    async def top_users(self, limit: int = 10) -> list[tuple[int, str, int]]:
-        """Топ пользователей по количеству сообщений"""
-        result = await self.session.execute(
+    async def count_unique_users(self, chat_id: int | None = None) -> int:
+        """Количество уникальных пользователей (опционально в конкретном чате)"""
+        stmt = select(func.count(func.distinct(Message.person_id)))
+        if chat_id is not None:
+            stmt = stmt.where(Message.chat_id == chat_id)
+        result = await self.session.execute(stmt)
+        return result.scalar()
+
+    async def top_users(self, limit: int = 10, chat_id: int | None = None) -> list[tuple[int, str, int]]:
+        """Топ пользователей по количеству сообщений (опционально в конкретном чате)"""
+        stmt = (
             select(
                 Message.person_id,
                 Message.name,
                 func.count(Message.id).label("cnt")
             )
+        )
+        if chat_id is not None:
+            stmt = stmt.where(Message.chat_id == chat_id)
+        stmt = (
+            stmt
             .group_by(Message.person_id, Message.name)
             .order_by(func.count(Message.id).desc())
             .limit(limit)
         )
+        result = await self.session.execute(stmt)
         return [(row[0], row[1], row[2]) for row in result.all()]
 
 

@@ -19,11 +19,10 @@ logger = logging.getLogger(__name__)
 def verify_telegram_data(init_data: str) -> dict | None:
     """
     Проверяет подпись initData от Telegram Web App.
-    Возвращает распарсенные данные или None если подпись невалидна.
+    Возвращает dict с ключами 'user' и 'chat' (если есть) или None.
     """
     try:
         parsed = parse_qs(init_data, keep_blank_values=True)
-        # Извлекаем hash
         received_hash = parsed.pop("hash", [None])[0]
         if not received_hash:
             return None
@@ -35,81 +34,134 @@ def verify_telegram_data(init_data: str) -> dict | None:
             data_check.append(f"{key}={val}")
         data_check_string = "\n".join(data_check)
 
-        # Создаём секретный ключ
-        secret_key = hmac.new(b"WebAppData", BOT_TOKEN.encode(), hashlib.sha256).digest()
         # Проверяем подпись
+        secret_key = hmac.new(b"WebAppData", BOT_TOKEN.encode(), hashlib.sha256).digest()
         computed_hash = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()
 
-        if computed_hash == received_hash:
-            # Парсим user
-            user_json = parsed.get("user", [None])[0]
-            if user_json:
-                return json.loads(user_json)
-            return {}
-        return None
+        if computed_hash != received_hash:
+            return None
+
+        result = {}
+        user_json = parsed.get("user", [None])[0]
+        if user_json:
+            result["user"] = json.loads(user_json)
+        chat_json = parsed.get("chat", [None])[0]
+        if chat_json:
+            result["chat"] = json.loads(chat_json)
+        # chat_type передаётся отдельным полем
+        chat_type = parsed.get("chat_type", [None])[0]
+        if chat_type:
+            result["chat_type"] = chat_type
+        return result
     except Exception as e:
         logger.error(f"[API] Ошибка верификации initData: {e}")
         return None
 
 
-def get_user_from_request(request: web.Request) -> dict | None:
-    """Извлекает и верифицирует пользователя из заголовка X-Telegram-Init-Data"""
+def parse_request(request: web.Request) -> dict | None:
+    """Извлекает и верифицирует данные из заголовка X-Telegram-Init-Data"""
     init_data = request.headers.get("X-Telegram-Init-Data", "")
     if not init_data:
         return None
     return verify_telegram_data(init_data)
 
 
-async def api_stats(request: web.Request) -> web.Response:
-    """GET /api/stats — общая статистика бота"""
-    async with async_session_maker() as session:
-        user_repo = UserRepository(session)
-        msg_repo = MessageRepository(session)
-        chat_repo = ChatRepository(session)
+def is_admin(data: dict) -> bool:
+    """Проверяет, является ли пользователь админом"""
+    user = data.get("user", {})
+    return str(user.get("id", "")) in ADMINS
 
-        users_count = await user_repo.count()
-        messages_count = await msg_repo.count()
-        chats_count = await chat_repo.count_active()
+
+async def api_stats(request: web.Request) -> web.Response:
+    """GET /api/stats — статистика (по чату из initData или глобальная для админов)"""
+    data = parse_request(request)
+    if data is None:
+        return web.json_response({"error": "unauthorized"}, status=401)
+
+    chat = data.get("chat")
+    chat_id = chat.get("id") if chat else None
+    admin = is_admin(data)
+
+    async with async_session_maker() as session:
+        msg_repo = MessageRepository(session)
+
+        if chat_id:
+            # Из группового чата — показываем статистику этого чата
+            users_count = await msg_repo.count_unique_users(chat_id=chat_id)
+            messages_count = await msg_repo.count_by_chat_id(chat_id)
+            chats_count = 1
+        elif admin:
+            # Админ из личного чата — глобальная статистика
+            user_repo = UserRepository(session)
+            chat_repo = ChatRepository(session)
+            users_count = await user_repo.count()
+            messages_count = await msg_repo.count()
+            chats_count = await chat_repo.count_active()
+        else:
+            # Обычный пользователь из личного чата — только его сообщения
+            user_id = data.get("user", {}).get("id")
+            users_count = 1
+            messages_count = await msg_repo.count_by_person(user_id) if user_id else 0
+            chats_count = 0
 
     return web.json_response({
         "users": users_count,
         "messages": messages_count,
         "chats": chats_count,
+        "chat_title": chat.get("title") if chat else None,
+        "is_admin": admin,
     })
 
 
 async def api_profile(request: web.Request) -> web.Response:
     """GET /api/profile — профиль текущего пользователя"""
-    user = get_user_from_request(request)
-    if user is None:
+    data = parse_request(request)
+    if data is None:
         return web.json_response({"error": "unauthorized"}, status=401)
 
+    user = data.get("user", {})
     user_id = user.get("id")
     if not user_id:
         return web.json_response({"error": "no user id"}, status=400)
+
+    chat = data.get("chat")
+    chat_id = chat.get("id") if chat else None
 
     async with async_session_maker() as session:
         user_repo = UserRepository(session)
         msg_repo = MessageRepository(session)
 
         db_user = await user_repo.get(user_id)
-        msg_count = await msg_repo.count_by_person(user_id)
+        msg_count = await msg_repo.count_by_person(user_id, chat_id=chat_id)
 
     return web.json_response({
         "id": user_id,
         "name": user.get("first_name", "") + (" " + user.get("last_name", "") if user.get("last_name") else ""),
         "username": user.get("username"),
-        "is_admin": db_user.is_admin if db_user else False,
+        "is_admin": is_admin(data),
         "messages_count": msg_count,
         "registered": db_user is not None,
     })
 
 
 async def api_top_users(request: web.Request) -> web.Response:
-    """GET /api/top — топ пользователей по сообщениям"""
+    """GET /api/top — топ пользователей (по чату из initData)"""
+    data = parse_request(request)
+    if data is None:
+        return web.json_response({"error": "unauthorized"}, status=401)
+
+    chat = data.get("chat")
+    chat_id = chat.get("id") if chat else None
+    admin = is_admin(data)
+
+    # Обычный пользователь без чата — нет данных для топа
+    if not chat_id and not admin:
+        return web.json_response({"top": []})
+
     async with async_session_maker() as session:
         msg_repo = MessageRepository(session)
-        top = await msg_repo.top_users(limit=10)
+        # Админ из личного чата видит глобальный топ, остальные — только свой чат
+        top = await msg_repo.top_users(limit=10, chat_id=chat_id if not admin or chat_id else None)
 
     return web.json_response({
         "top": [
@@ -121,12 +173,11 @@ async def api_top_users(request: web.Request) -> web.Response:
 
 async def api_chats(request: web.Request) -> web.Response:
     """GET /api/chats — список активных чатов (только для админов)"""
-    user = get_user_from_request(request)
-    if user is None:
+    data = parse_request(request)
+    if data is None:
         return web.json_response({"error": "unauthorized"}, status=401)
 
-    user_id = str(user.get("id", ""))
-    if user_id not in ADMINS:
+    if not is_admin(data):
         return web.json_response({"error": "forbidden"}, status=403)
 
     async with async_session_maker() as session:
@@ -143,12 +194,11 @@ async def api_chats(request: web.Request) -> web.Response:
 
 async def api_send_message(request: web.Request) -> web.Response:
     """POST /api/send — отправка сообщения в чат (только для админов)"""
-    user = get_user_from_request(request)
-    if user is None:
+    data = parse_request(request)
+    if data is None:
         return web.json_response({"error": "unauthorized"}, status=401)
 
-    user_id = str(user.get("id", ""))
-    if user_id not in ADMINS:
+    if not is_admin(data):
         return web.json_response({"error": "forbidden"}, status=403)
 
     try:
@@ -161,7 +211,6 @@ async def api_send_message(request: web.Request) -> web.Response:
     if not chat_id or not text:
         return web.json_response({"error": "chat_id and text required"}, status=400)
 
-    # Отправляем через бота
     from bot import bot
     try:
         await bot.send_message(chat_id=int(chat_id), text=text)

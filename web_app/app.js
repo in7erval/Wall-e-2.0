@@ -35,10 +35,20 @@ function formatNumber(n) {
     return String(n);
 }
 
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 // ====== Навигация ======
 
 const tabs = document.querySelectorAll('.tab');
 const pages = document.querySelectorAll('.page');
+const adminTab = document.querySelector('.tab[data-tab="admin"]');
+
+// Скрываем админ-таб по умолчанию
+if (adminTab) adminTab.style.display = 'none';
 
 tabs.forEach(tab => {
     tab.addEventListener('click', () => {
@@ -48,7 +58,6 @@ tabs.forEach(tab => {
         tab.classList.add('active');
         document.getElementById(target).classList.add('active');
 
-        // Загрузка данных при переключении
         if (target === 'stats' && !statsLoaded) loadStats();
         if (target === 'profile' && !profileLoaded) loadProfile();
         if (target === 'admin' && !adminLoaded) loadAdmin();
@@ -66,9 +75,27 @@ async function loadStats() {
     ]);
 
     if (stats) {
+        // Показываем название чата если есть
+        const title = document.getElementById('stats-title');
+        if (stats.chat_title) {
+            title.textContent = '📊 ' + stats.chat_title;
+        }
+
         document.getElementById('stat-users').textContent = formatNumber(stats.users);
         document.getElementById('stat-messages').textContent = formatNumber(stats.messages);
-        document.getElementById('stat-chats').textContent = formatNumber(stats.chats);
+
+        // Скрываем карточку "Чатов" если мы внутри чата
+        const chatsCard = document.getElementById('stat-chats-card');
+        if (stats.chats <= 1 && stats.chat_title) {
+            chatsCard.style.display = 'none';
+        } else {
+            document.getElementById('stat-chats').textContent = formatNumber(stats.chats);
+        }
+
+        // Показываем админ-таб если пользователь — админ
+        if (stats.is_admin && adminTab) {
+            adminTab.style.display = '';
+        }
     }
 
     const topEl = document.getElementById('top-users');
@@ -93,7 +120,6 @@ async function loadStats() {
 let profileLoaded = false;
 
 async function loadProfile() {
-    // Данные из Telegram SDK (без API, работают без верификации)
     const user = tg.initDataUnsafe?.user;
     if (user) {
         const name = user.first_name + (user.last_name ? ' ' + user.last_name : '');
@@ -102,7 +128,6 @@ async function loadProfile() {
         document.getElementById('profile-avatar').textContent = user.first_name.charAt(0).toUpperCase();
     }
 
-    // Данные из API (с верификацией)
     const profile = await apiFetch('/profile');
     if (profile && !profile.error) {
         document.getElementById('profile-messages').textContent = formatNumber(profile.messages_count);
@@ -123,7 +148,6 @@ async function loadAdmin() {
     const data = await apiFetch('/chats');
 
     if (data && !data.error) {
-        // Пользователь — админ
         document.getElementById('admin-content').style.display = 'none';
         document.getElementById('admin-panel').style.display = 'block';
 
@@ -136,7 +160,6 @@ async function loadAdmin() {
             select.innerHTML = '<option disabled>Нет активных чатов</option>';
         }
     } else {
-        // Не админ или ошибка
         document.getElementById('admin-content').style.display = 'none';
         document.getElementById('admin-denied').style.display = 'block';
     }
@@ -144,11 +167,9 @@ async function loadAdmin() {
     adminLoaded = true;
 }
 
-// Отправка сообщения из админ-панели
 document.getElementById('admin-send')?.addEventListener('click', async () => {
     const chatId = document.getElementById('admin-chat').value;
     const text = document.getElementById('admin-text').value.trim();
-    const statusEl = document.getElementById('admin-status');
 
     if (!text) {
         showAdminStatus('Введите текст сообщения', 'error');
@@ -190,11 +211,4 @@ if (gameBoard && gameScore) {
 
 // ====== Инициализация ======
 
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-// Загружаем статистику при старте
 loadStats();
