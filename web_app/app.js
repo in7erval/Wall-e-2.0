@@ -152,7 +152,6 @@ async function loadAdmin() {
         const emptyOption = '<option disabled>Нет активных чатов</option>';
         document.getElementById('admin-chat').innerHTML = adminChats.length ? chatOptions : emptyOption;
         document.getElementById('admin-messages-chat').innerHTML = adminChats.length ? chatOptions : emptyOption;
-        document.getElementById('admin-media-chat').innerHTML = adminChats.length ? chatOptions : emptyOption;
     } else {
         document.getElementById('admin-content').style.display = 'none';
         document.getElementById('admin-denied').style.display = 'block';
@@ -208,60 +207,6 @@ document.getElementById('admin-load-more')?.addEventListener('click', () => {
     loadMessages();
 });
 
-async function loadMessages() {
-    if (!currentMessagesChatId) return;
-
-    const data = await apiFetch(`/messages?chat_id=${currentMessagesChatId}&offset=${messagesOffset}&limit=50`);
-    if (!data || data.error) return;
-
-    const listEl = document.getElementById('messages-list');
-    const loadMoreBtn = document.getElementById('admin-load-more');
-    listEl.style.display = 'block';
-
-    // Показать total при первой загрузке
-    if (messagesOffset === 0) {
-        listEl.innerHTML = `<div class="msg-total">Всего сообщений: ${data.total}</div>`;
-    }
-
-    if (data.messages.length === 0 && messagesOffset === 0) {
-        listEl.innerHTML = '<div class="loading">Нет сообщений</div>';
-        loadMoreBtn.style.display = 'none';
-        return;
-    }
-
-    const html = data.messages.map(m =>
-        `<div class="msg-item">
-            <div class="msg-header">
-                <span class="msg-name">${escapeHtml(m.name)}</span>
-                <span class="msg-time">${formatTime(m.created_at)}</span>
-            </div>
-            <div class="msg-text">${escapeHtml(m.text)}</div>
-        </div>`
-    ).join('');
-
-    listEl.insertAdjacentHTML('beforeend', html);
-    messagesOffset += data.messages.length;
-
-    // Показать/скрыть кнопку "ещё"
-    loadMoreBtn.style.display = messagesOffset < data.total ? 'block' : 'none';
-}
-
-// ====== Медиа (голосовые / видео) ======
-
-let mediaOffset = 0;
-let currentMediaChatId = null;
-
-document.getElementById('admin-load-media')?.addEventListener('click', () => {
-    mediaOffset = 0;
-    currentMediaChatId = document.getElementById('admin-media-chat').value;
-    document.getElementById('media-list').innerHTML = '';
-    loadMedia();
-});
-
-document.getElementById('admin-load-more-media')?.addEventListener('click', () => {
-    loadMedia();
-});
-
 function formatDuration(sec) {
     if (!sec) return '0:00';
     const m = Math.floor(sec / 60);
@@ -276,69 +221,82 @@ function formatFileSize(bytes) {
     return bytes + ' Б';
 }
 
-function mediaUrl(localPath) {
+function mediaFileUrl(localPath) {
     if (!localPath) return null;
-    // local_path вида "media_files/voice/123_456.ogg" -> "/media/voice/123_456.ogg"
     return '/' + localPath.replace(/^media_files\//, 'media/');
 }
 
-async function loadMedia() {
-    if (!currentMediaChatId) return;
+function renderMessage(m) {
+    const authQuery = `init_data=${encodeURIComponent(initData)}`;
 
-    const mediaType = document.getElementById('admin-media-type').value;
-    let url = `/media?chat_id=${currentMediaChatId}&offset=${mediaOffset}&limit=50`;
-    if (mediaType) url += `&type=${mediaType}`;
+    if (m.type === 'text') {
+        return `<div class="msg-item">
+            <div class="msg-header">
+                <span class="msg-name">${escapeHtml(m.name)}</span>
+                <span class="msg-time">${formatTime(m.created_at)}</span>
+            </div>
+            <div class="msg-text">${escapeHtml(m.text)}</div>
+        </div>`;
+    }
 
-    const data = await apiFetch(url);
+    if (m.type === 'voice') {
+        const url = mediaFileUrl(m.local_path);
+        const player = url
+            ? `<audio controls preload="none" class="media-player"><source src="${url}?${authQuery}" type="audio/ogg"></audio>`
+            : `<div class="media-no-file">Файл недоступен</div>`;
+        return `<div class="msg-item msg-media">
+            <div class="msg-header">
+                <span class="msg-name">🎤 ${escapeHtml(m.name)}</span>
+                <span class="msg-time">${formatTime(m.created_at)}</span>
+            </div>
+            <div class="media-info">Голосовое · ${formatDuration(m.duration)} · ${formatFileSize(m.file_size)}</div>
+            ${player}
+        </div>`;
+    }
+
+    if (m.type === 'video_note') {
+        const url = mediaFileUrl(m.local_path);
+        const player = url
+            ? `<video controls preload="none" class="media-video-player" playsinline><source src="${url}?${authQuery}" type="video/mp4"></video>`
+            : `<div class="media-no-file">Файл недоступен</div>`;
+        return `<div class="msg-item msg-media">
+            <div class="msg-header">
+                <span class="msg-name">🎥 ${escapeHtml(m.name)}</span>
+                <span class="msg-time">${formatTime(m.created_at)}</span>
+            </div>
+            <div class="media-info">Видеосообщение · ${formatDuration(m.duration)} · ${formatFileSize(m.file_size)}</div>
+            ${player}
+        </div>`;
+    }
+
+    return '';
+}
+
+async function loadMessages() {
+    if (!currentMessagesChatId) return;
+
+    const data = await apiFetch(`/messages?chat_id=${currentMessagesChatId}&offset=${messagesOffset}&limit=50`);
     if (!data || data.error) return;
 
-    const listEl = document.getElementById('media-list');
-    const loadMoreBtn = document.getElementById('admin-load-more-media');
+    const listEl = document.getElementById('messages-list');
+    const loadMoreBtn = document.getElementById('admin-load-more');
     listEl.style.display = 'block';
 
-    if (mediaOffset === 0) {
+    if (messagesOffset === 0) {
         listEl.innerHTML = `<div class="msg-total">Всего: ${data.total}</div>`;
     }
 
-    if (data.media.length === 0 && mediaOffset === 0) {
-        listEl.innerHTML = '<div class="loading">Нет медиасообщений</div>';
+    if (data.messages.length === 0 && messagesOffset === 0) {
+        listEl.innerHTML = '<div class="loading">Нет сообщений</div>';
         loadMoreBtn.style.display = 'none';
         return;
     }
 
-    const html = data.media.map(m => {
-        const url = mediaUrl(m.local_path);
-        const icon = m.media_type === 'voice' ? '🎤' : '🎥';
-        const typeLabel = m.media_type === 'voice' ? 'Голосовое' : 'Видеосообщение';
-        let playerHtml = '';
-
-        const authQuery = `init_data=${encodeURIComponent(initData)}`;
-        if (url && m.media_type === 'voice') {
-            playerHtml = `<audio controls preload="none" class="media-player">
-                <source src="${url}?${authQuery}" type="audio/ogg">
-            </audio>`;
-        } else if (url && m.media_type === 'video_note') {
-            playerHtml = `<video controls preload="none" class="media-video-player" playsinline>
-                <source src="${url}?${authQuery}" type="video/mp4">
-            </video>`;
-        } else {
-            playerHtml = `<div class="media-no-file">Файл недоступен</div>`;
-        }
-
-        return `<div class="media-item">
-            <div class="msg-header">
-                <span class="msg-name">${icon} ${escapeHtml(m.name)}</span>
-                <span class="msg-time">${formatTime(m.created_at)}</span>
-            </div>
-            <div class="media-info">${typeLabel} · ${formatDuration(m.duration)} · ${formatFileSize(m.file_size)}</div>
-            ${playerHtml}
-        </div>`;
-    }).join('');
-
+    const html = data.messages.map(renderMessage).join('');
     listEl.insertAdjacentHTML('beforeend', html);
-    mediaOffset += data.media.length;
+    messagesOffset += data.messages.length;
 
-    loadMoreBtn.style.display = mediaOffset < data.total ? 'block' : 'none';
+    loadMoreBtn.style.display = messagesOffset < data.total ? 'block' : 'none';
 }
 
 // ====== Игра 2048 ======

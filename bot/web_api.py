@@ -192,7 +192,7 @@ async def api_chats(request: web.Request) -> web.Response:
 
 
 async def api_messages(request: web.Request) -> web.Response:
-    """GET /api/messages?chat_id=X&offset=0&limit=50 — сообщения чата (только для админов)"""
+    """GET /api/messages?chat_id=X&offset=0&limit=50 — единая лента сообщений чата (только для админов)"""
     data = parse_request(request)
     if not is_admin(data):
         return web.json_response({"error": "forbidden"}, status=403)
@@ -207,20 +207,42 @@ async def api_messages(request: web.Request) -> web.Response:
 
     async with async_session_maker() as session:
         msg_repo = MessageRepository(session)
-        messages = await msg_repo.get_paginated(chat_id, limit=limit, offset=offset)
-        total = await msg_repo.count_by_chat_id(chat_id)
+        media_repo = MediaMessageRepository(session)
 
-    return web.json_response({
-        "messages": [
-            {
+        # Загружаем все текстовые и медиа для этого чата
+        text_messages = await msg_repo.get_by_chat_id(chat_id)
+        media_messages = await media_repo.get_by_chat_id(chat_id)
+
+        # Объединяем в единый список
+        combined = []
+        for m in text_messages:
+            combined.append({
                 "id": m.id,
+                "type": "text",
                 "name": m.name,
                 "text": m.message,
                 "person_id": m.person_id,
                 "created_at": m.created_at.isoformat() if m.created_at else None,
-            }
-            for m in messages
-        ],
+            })
+        for m in media_messages:
+            combined.append({
+                "id": m.id,
+                "type": m.media_type,
+                "name": m.name,
+                "person_id": m.person_id,
+                "duration": m.duration,
+                "file_size": m.file_size,
+                "local_path": m.local_path,
+                "created_at": m.created_at.isoformat() if m.created_at else None,
+            })
+
+        # Сортировка по времени (новые первыми)
+        combined.sort(key=lambda x: x["created_at"] or "", reverse=True)
+        total = len(combined)
+        page = combined[offset:offset + limit]
+
+    return web.json_response({
+        "messages": page,
         "total": total,
         "offset": offset,
         "limit": limit,

@@ -91,8 +91,8 @@
             <button class="btn btn-primary" id="admin-send">📤 Отправить</button>
             <div id="admin-status" class="status" style="display:none;"></div>
 
-            <!-- Просмотр сообщений -->
-            <h2>💬 Сообщения чата</h2>
+            <!-- Просмотр сообщений (текст + голосовые + видеосообщения) -->
+            <h2>💬 История чата</h2>
             <div class="form-group">
                 <label>Чат:</label>
                 <select id="admin-messages-chat" class="input"></select>
@@ -100,24 +100,6 @@
             <button class="btn btn-primary" id="admin-load-messages">📖 Загрузить</button>
             <div id="messages-list" class="messages-list" style="display:none;"></div>
             <button class="btn" id="admin-load-more" style="display:none; margin-top:8px; width:100%;">Загрузить ещё</button>
-
-            <!-- Просмотр медиа -->
-            <h2>🎤 Голосовые и видеосообщения</h2>
-            <div class="form-group">
-                <label>Чат:</label>
-                <select id="admin-media-chat" class="input"></select>
-            </div>
-            <div class="form-group">
-                <label>Тип:</label>
-                <select id="admin-media-type" class="input">
-                    <option value="">Все</option>
-                    <option value="voice">Голосовые</option>
-                    <option value="video_note">Видеосообщения</option>
-                </select>
-            </div>
-            <button class="btn btn-primary" id="admin-load-media">🔍 Загрузить</button>
-            <div id="media-list" class="messages-list" style="display:none;"></div>
-            <button class="btn" id="admin-load-more-media" style="display:none; margin-top:8px; width:100%;">Загрузить ещё</button>
         </div>
         <div id="admin-denied" style="display:none;">
             <div class="card">
