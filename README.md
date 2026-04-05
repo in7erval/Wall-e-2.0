@@ -48,12 +48,13 @@
 - Auto-tracking of chats where the bot is added
 - Message deletion for admins
 - Message logging (Big Brother middleware)
+- Voice message and video note (circle) saving to database with file download
 
 ### Web App (Mini App)
 - **Stats** — message and user statistics per chat
 - **Profile** — user card with message count and status
 - **2048** — mini-game with swipe support
-- **Admin panel** — send messages to chats, browse message history
+- **Admin panel** — send messages to chats, browse message history, listen to voice messages and watch video notes
 
 ### Admin
 - **/send_msg** — send message to any tracked chat via interactive inline keyboard
@@ -181,13 +182,14 @@ Wall-e-2.0/
 │       └── photo_rectangles.py
 ├── database/
 │   ├── __init__.py         # Engine, session, on_startup
-│   ├── models.py           # User, Message, Chat, InlinePhoto, RectanglesImg
+│   ├── models.py           # User, Message, MediaMessage, Chat, InlinePhoto, RectanglesImg
 │   ├── repositories.py     # Repository pattern
 │   └── middleware.py        # RepositoryMiddleware (DI)
 ├── utils/
 │   ├── misc/               # Markov chain, photos, random helpers
 │   └── simplex/            # Simplex method (standalone)
 ├── web_app/                # Telegram Mini App (HTML/CSS/JS)
+├── media_files/            # Downloaded voice/video_note files
 ├── alembic/                # Database migrations
 ├── .github/workflows/      # CI/CD (build & push to ghcr.io)
 ├── Dockerfile
