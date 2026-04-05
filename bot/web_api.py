@@ -73,14 +73,12 @@ def is_admin(data: dict) -> bool:
 
 
 async def api_stats(request: web.Request) -> web.Response:
-    """GET /api/stats — статистика (по чату из initData или глобальная для админов)"""
+    """GET /api/stats — статистика (по чату из initData или глобальная)"""
     data = parse_request(request)
-    if data is None:
-        return web.json_response({"error": "unauthorized"}, status=401)
+    admin = is_admin(data) if data else False
 
-    chat = data.get("chat")
+    chat = data.get("chat") if data else None
     chat_id = chat.get("id") if chat else None
-    admin = is_admin(data)
 
     async with async_session_maker() as session:
         msg_repo = MessageRepository(session)
@@ -91,18 +89,25 @@ async def api_stats(request: web.Request) -> web.Response:
             messages_count = await msg_repo.count_by_chat_id(chat_id)
             chats_count = 1
         elif admin:
-            # Админ из личного чата — глобальная статистика
+            # Админ — глобальная статистика
             user_repo = UserRepository(session)
             chat_repo = ChatRepository(session)
             users_count = await user_repo.count()
             messages_count = await msg_repo.count()
             chats_count = await chat_repo.count_active()
-        else:
-            # Обычный пользователь из личного чата — только его сообщения
+        elif data:
+            # Авторизованный пользователь из личного чата
             user_id = data.get("user", {}).get("id")
             users_count = 1
             messages_count = await msg_repo.count_by_person(user_id) if user_id else 0
             chats_count = 0
+        else:
+            # Без авторизации (открыто по URL) — общая статистика без деталей
+            user_repo = UserRepository(session)
+            chat_repo = ChatRepository(session)
+            users_count = await user_repo.count()
+            messages_count = await msg_repo.count()
+            chats_count = await chat_repo.count_active()
 
     return web.json_response({
         "users": users_count,
@@ -147,21 +152,22 @@ async def api_profile(request: web.Request) -> web.Response:
 async def api_top_users(request: web.Request) -> web.Response:
     """GET /api/top — топ пользователей (по чату из initData)"""
     data = parse_request(request)
-    if data is None:
-        return web.json_response({"error": "unauthorized"}, status=401)
+    admin = is_admin(data) if data else False
 
-    chat = data.get("chat")
+    chat = data.get("chat") if data else None
     chat_id = chat.get("id") if chat else None
-    admin = is_admin(data)
-
-    # Обычный пользователь без чата — нет данных для топа
-    if not chat_id and not admin:
-        return web.json_response({"top": []})
 
     async with async_session_maker() as session:
         msg_repo = MessageRepository(session)
-        # Админ из личного чата видит глобальный топ, остальные — только свой чат
-        top = await msg_repo.top_users(limit=10, chat_id=chat_id if not admin or chat_id else None)
+        if chat_id:
+            # Из группы — топ этого чата
+            top = await msg_repo.top_users(limit=10, chat_id=chat_id)
+        elif admin:
+            # Админ — глобальный топ
+            top = await msg_repo.top_users(limit=10)
+        else:
+            # Без авторизации или обычный пользователь — глобальный топ
+            top = await msg_repo.top_users(limit=10)
 
     return web.json_response({
         "top": [
