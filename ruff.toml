@@ -1,0 +1,60 @@
+# Ruff configuration for Wall-e 2.0
+# https://docs.astral.sh/ruff/configuration/
+
+line-length = 120
+target-version = "py310"
+exclude = [".git", ".venv", "venv", "__pycache__", ".qwen"]
+
+[lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # Pyflakes
+    "I",      # isort
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "UP",     # pyupgrade
+    "N",      # pep8-naming
+    "SIM",    # flake8-simplify
+    "S",      # flake8-bandit (security)
+    "A",      # flake8-builtins
+    "TCH",    # flake8-type-checking
+    "PTH",    # flake8-use-pathlib
+    "ERA",    # eradicate (commented-out code)
+    "RUF",    # Ruff-specific rules
+]
+
+ignore = [
+    "E501",   # Line too long (black handles this)
+    "B008",   # Do not perform function calls in argument defaults (needed for DI)
+    "S101",   # Use of assert detected (needed for tests)
+    "S104",   # Possible binding to all interfaces (needed for webhook server)
+    "S105",   # Possible hardcoded password (false positives in config)
+    "S311",   # suspicious-non-cryptographic-random-usage (не нужен крипто-рандом для игр)
+    "S324",   # hashlib-insecure-hash-function (md5 для детерминированного рандома, не для безопасности)
+    "S110",   # try-except-pass (используем для fallback на API)
+    "S608",   # Possible SQL injection vector (we use SQLAlchemy ORM)
+    "PTH107", # os.remove → Path.unlink (не критично)
+    "PTH110", # os.path.exists → Path.exists (не критично)
+    "PTH123", # open → Path.open (не критично)
+    "RUF001", # ambiguous-unicode-character-string (русский текст)
+    "RUF002", # ambiguous-unicode-character-docstring (русский текст)
+    "RUF003", # ambiguous-unicode-character-comment (русский текст)
+    "RUF012", # Mutable class attributes (needed for routers)
+]
+
+[lint.per-file-ignores]
+"bot/config.py" = ["S105"]
+"database/__init__.py" = ["S105"]
+"**/tests/*.py" = ["S101"]
+"utils/simplex/*.py" = ["N999", "PTH123", "SIM115", "B006", "UP031", "A001", "A002"]
+
+[lint.isort]
+known-first-party = ["bot", "database", "utils"]
+known-third-party = ["aiogram", "sqlalchemy", "aiohttp", "environs"]
+
+[lint.mccabe]
+max-complexity = 15
+
+[lint.pydocstyle]
+convention = "google"

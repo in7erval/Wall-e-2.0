@@ -10,4 +10,4 @@ def random_probability(text):
         return
     if len(strs) > 1:
         prob = random.randint(0, 101)  # не баг а фича
-        return f"Я думаю, что на {str(prob)}%"
+        return f"Я думаю, что на {prob!s}%"

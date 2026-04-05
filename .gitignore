@@ -127,8 +127,23 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Project specific
 /webhook_cert.pem
 /webhook_pkey.pem
 /saytemp.ogg
 /dictionary.txt
+/history.csv
+bot.log
+logs/
+temp_images/
+
+# IDE
 .idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Qwen
+.qwen/

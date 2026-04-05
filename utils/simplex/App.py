@@ -106,8 +106,7 @@ class App:
         k = 1
 
         while k <= self.equations_count:
-            print('Enter {} coefficients, equality sign and free term for the equation {}:'.format(self.variables_count,
-                                                                                                   k))
+            print(f'Enter {self.variables_count} coefficients, equality sign and free term for the equation {k}:')
             buffer = input()
             equation = buffer.split()
             if len(equation) < self.variables_count + 2:
@@ -143,7 +142,7 @@ class App:
             k += 1
 
         while True:
-            print('Enter {} coefficients for object function:'.format(self.variables_count))
+            print(f'Enter {self.variables_count} coefficients for object function:')
             buffer = input()
             equation = buffer.split()
             if len(equation) < self.variables_count:
@@ -224,31 +223,31 @@ class App:
             for j in range(self.variables_count):
                 if j == 0 or self.matrix_a[i][j] < 0:
                     if self.matrix_a[i][j] == -1:
-                        print('-x{}'.format(j + 1), end='')
+                        print(f'-x{j + 1}', end='')
                     elif self.matrix_a[i][j] == 1:
-                        print('x{}'.format(j + 1), end='')
+                        print(f'x{j + 1}', end='')
                     else:
-                        print('{}x{}'.format(self.matrix_a[i][j], j + 1), end='')
+                        print(f'{self.matrix_a[i][j]}x{j + 1}', end='')
                 else:
                     if self.matrix_a[i][j] == 1:
-                        print('+x{}'.format(j + 1), end='')
+                        print(f'+x{j + 1}', end='')
                     else:
-                        print('+{}x{}'.format(self.matrix_a[i][j], j + 1), end='')
-            print('{}{}'.format(self.signs[i], self.matrix_b[i]))
+                        print(f'+{self.matrix_a[i][j]}x{j + 1}', end='')
+            print(f'{self.signs[i]}{self.matrix_b[i]}')
         print('Z(x)=', end='')
         for i in range(self.variables_count):
             if i == 0 or self.matrix_c[i] < 0:
                 if self.matrix_c[i] == -1:
-                    print('-x{}'.format(i + 1), end='')
+                    print(f'-x{i + 1}', end='')
                 elif self.matrix_c[i] == 1:
-                    print('x{}'.format(i + 1), end='')
+                    print(f'x{i + 1}', end='')
                 else:
-                    print('{}x{}'.format(self.matrix_c[i], i + 1), end='')
+                    print(f'{self.matrix_c[i]}x{i + 1}', end='')
             else:
                 if self.matrix_c[i] == 1:
-                    print('+x{}'.format(i + 1), end='')
+                    print(f'+x{i + 1}', end='')
                 else:
-                    print('+{}x{}'.format(self.matrix_c[i], i + 1), end='')
+                    print(f'+{self.matrix_c[i]}x{i + 1}', end='')
         if self.is_maximize:
             print(' -> max')
         else:
@@ -261,31 +260,31 @@ class App:
             for j in range(self.variables_count):
                 if j == 0 or self.matrix_a[i][j] < 0:
                     if self.matrix_a[i][j] == -1:
-                        file.write('-x{}'.format(j + 1))
+                        file.write(f'-x{j + 1}')
                     elif self.matrix_a[i][j] == 1:
-                        file.write('x{}'.format(j + 1))
+                        file.write(f'x{j + 1}')
                     else:
-                        file.write('{}x{}'.format(self.matrix_a[i][j], j + 1))
+                        file.write(f'{self.matrix_a[i][j]}x{j + 1}')
                 else:
                     if self.matrix_a[i][j] == 1:
-                        file.write('+x{}'.format(j + 1))
+                        file.write(f'+x{j + 1}')
                     else:
-                        file.write('+{}x{}'.format(self.matrix_a[i][j], j + 1))
-            file.write('{}{}'.format(self.signs[i], self.matrix_b[i]) + '\n')
+                        file.write(f'+{self.matrix_a[i][j]}x{j + 1}')
+            file.write(f'{self.signs[i]}{self.matrix_b[i]}' + '\n')
         file.write('Z(x)=')
         for i in range(self.variables_count):
             if i == 0 or self.matrix_c[i] < 0:
                 if self.matrix_c[i] == -1:
-                    file.write('-x{}'.format(i + 1))
+                    file.write(f'-x{i + 1}')
                 elif self.matrix_c[i] == 1:
-                    file.write('x{}'.format(i + 1))
+                    file.write(f'x{i + 1}')
                 else:
-                    file.write('{}x{}'.format(self.matrix_c[i], i + 1))
+                    file.write(f'{self.matrix_c[i]}x{i + 1}')
             else:
                 if self.matrix_c[i] == 1:
-                    file.write('+x{}'.format(i + 1))
+                    file.write(f'+x{i + 1}')
                 else:
-                    file.write('+{}x{}'.format(self.matrix_c[i], i + 1))
+                    file.write(f'+{self.matrix_c[i]}x{i + 1}')
         if self.is_maximize:
             file.write(' -> max\n')
         else:
@@ -307,7 +306,7 @@ class App:
     @private
     def transform_for_dual_task(self):
         for i in range(self.equations_count):
-            if self.is_maximize and self.signs[i] == '>=' or not self.is_maximize and self.signs[i] == '<=':
+            if (self.is_maximize and self.signs[i] == '>=') or (not self.is_maximize and self.signs[i] == '<='):
                 for j in range(self.variables_count):
                     self.matrix_a[i][j] = -self.matrix_a[i][j]
                 self.matrix_b[i] = -self.matrix_b[i]
@@ -330,14 +329,14 @@ class App:
             tmp_table = table.get_table_to_print()
             for row in tmp_table:
                 for element in row:
-                    file.write('{:>6} '.format(element))
+                    file.write(f'{element:>6} ')
                 file.write('\n')
         count = 1
         while table.can_be_iterated():
             if is_to_console:
-                print('Step {}:'.format(count))
+                print(f'Step {count}:')
             else:
-                file.write('Step {}:\n'.format(count))
+                file.write(f'Step {count}:\n')
             element = table.iterate()
             if is_to_console:
                 print(element)
@@ -347,7 +346,7 @@ class App:
                 tmp_table = table.get_table_to_print()
                 for row in tmp_table:
                     for element in row:
-                        file.write('{:>6} '.format(element))
+                        file.write(f'{element:>6} ')
                     file.write('\n')
             count += 1
         if is_to_console:
@@ -361,13 +360,13 @@ class App:
             tmp_table = table.get_table_to_print()
             for row in tmp_table:
                 for element in row:
-                    file.write('{:>6} '.format(element))
+                    file.write(f'{element:>6} ')
                 file.write('\n')
         while table.can_be_iterated():
             if is_to_console:
-                print('Step {}:'.format(count))
+                print(f'Step {count}:')
             else:
-                file.write('Step {}:\n'.format(count))
+                file.write(f'Step {count}:\n')
             element = table.iterate()
             if is_to_console:
                 print(element)
@@ -377,27 +376,27 @@ class App:
                 tmp_table = table.get_table_to_print()
                 for row in tmp_table:
                     for element in row:
-                        file.write('{:>6} '.format(element))
+                        file.write(f'{element:>6} ')
                     file.write('\n')
             count += 1
         if is_to_console:
             print('X vector:')
             for element in table.get_vector_answer():
-                print('{:>6}'.format(str(element)), end=' ')
+                print(f'{element!s:>6}', end=' ')
             print()
             if self.is_maximize:
-                print('Max Z: {}'.format(str(table.get_function_answer())))
+                print(f'Max Z: {table.get_function_answer()!s}')
             else:
-                print('Min Z: {}'.format(str(table.get_function_answer())))
+                print(f'Min Z: {table.get_function_answer()!s}')
         else:
             file.write('X vector:\n')
             for element in table.get_vector_answer():
-                file.write('{:>6} '.format(str(element)))
+                file.write(f'{element!s:>6} ')
             file.write('\n')
             if self.is_maximize:
-                file.write('Max Z: {}\n'.format(str(table.get_function_answer())))
+                file.write(f'Max Z: {table.get_function_answer()!s}\n')
             else:
-                file.write('Min Z: {}\n'.format(str(table.get_function_answer())))
+                file.write(f'Min Z: {table.get_function_answer()!s}\n')
         if not is_to_console:
             file.close()
 
@@ -424,14 +423,14 @@ class App:
             tmp_table = table.get_table_to_print()
             for row in tmp_table:
                 for element in row:
-                    file.write('{:>6} '.format(element))
+                    file.write(f'{element:>6} ')
                 file.write('\n')
         count = 1
         while table.can_be_iterated():
             if is_to_console:
-                print('Step {}:'.format(count))
+                print(f'Step {count}:')
             else:
-                file.write('Step {}:\n'.format(count))
+                file.write(f'Step {count}:\n')
             element = table.iterate()
             if is_to_console:
                 print(element)
@@ -441,7 +440,7 @@ class App:
                 tmp_table = table.get_table_to_print()
                 for row in tmp_table:
                     for element in row:
-                        file.write('{:>6} '.format(element))
+                        file.write(f'{element:>6} ')
                     file.write('\n')
             count += 1
         if is_to_console:
@@ -455,13 +454,13 @@ class App:
             tmp_table = table.get_table_to_print()
             for row in tmp_table:
                 for element in row:
-                    file.write('{:>6} '.format(element))
+                    file.write(f'{element:>6} ')
                 file.write('\n')
         while table.can_be_iterated():
             if is_to_console:
-                print('Step {}:'.format(count))
+                print(f'Step {count}:')
             else:
-                file.write('Step {}:\n'.format(count))
+                file.write(f'Step {count}:\n')
             element = table.iterate()
             if is_to_console:
                 print(element)
@@ -471,27 +470,27 @@ class App:
                 tmp_table = table.get_table_to_print()
                 for row in tmp_table:
                     for element in row:
-                        file.write('{:>6} '.format(element))
+                        file.write(f'{element:>6} ')
                     file.write('\n')
             count += 1
         if is_to_console:
             print('Y vector:')
             for element in table.get_vector_answer():
-                print('{:>6}'.format(str(element)), end=' ')
+                print(f'{element!s:>6}', end=' ')
             print()
             if self.is_maximize:
-                print('Max Z: {}'.format(str(table.get_function_answer())))
+                print(f'Max Z: {table.get_function_answer()!s}')
             else:
-                print('Min Z: {}'.format(str(table.get_function_answer())))
+                print(f'Min Z: {table.get_function_answer()!s}')
         else:
             file.write('Y vector:\n')
             for element in table.get_vector_answer():
-                file.write('{:>6} '.format(str(element)))
+                file.write(f'{element!s:>6} ')
             file.write('\n')
             if self.is_maximize:
-                file.write('Max Z: {}\n'.format(str(table.get_function_answer())))
+                file.write(f'Max Z: {table.get_function_answer()!s}\n')
             else:
-                file.write('Min Z: {}\n'.format(str(table.get_function_answer())))
+                file.write(f'Min Z: {table.get_function_answer()!s}\n')
         if not is_to_console:
             file.close()
 
@@ -509,14 +508,14 @@ class App:
             tmp_table = table.get_table_to_print()
             for row in tmp_table:
                 for element in row:
-                    file.write('{:>6} '.format(element))
+                    file.write(f'{element:>6} ')
                 file.write('\n')
         count = 1
         while table.can_be_iterated():
             if is_to_console:
-                print('Step {}:'.format(count))
+                print(f'Step {count}:')
             else:
-                file.write('Step {}:\n'.format(count))
+                file.write(f'Step {count}:\n')
             element = table.iterate()
             if is_to_console:
                 print(element)
@@ -526,7 +525,7 @@ class App:
                 tmp_table = table.get_table_to_print()
                 for row in tmp_table:
                     for element in row:
-                        file.write('{:>6} '.format(element))
+                        file.write(f'{element:>6} ')
                     file.write('\n')
             count += 1
         if is_to_console:
@@ -540,13 +539,13 @@ class App:
             tmp_table = table.get_table_to_print()
             for row in tmp_table:
                 for element in row:
-                    file.write('{:>6} '.format(element))
+                    file.write(f'{element:>6} ')
                 file.write('\n')
         while table.can_be_iterated():
             if is_to_console:
-                print('Step {}:'.format(count))
+                print(f'Step {count}:')
             else:
-                file.write('Step {}:\n'.format(count))
+                file.write(f'Step {count}:\n')
             element = table.iterate()
             if is_to_console:
                 print(element)
@@ -556,7 +555,7 @@ class App:
                 tmp_table = table.get_table_to_print()
                 for row in tmp_table:
                     for element in row:
-                        file.write('{:>6} '.format(element))
+                        file.write(f'{element:>6} ')
                     file.write('\n')
             count += 1
         if is_to_console:
@@ -571,9 +570,9 @@ class App:
                               filename=self.filename)
         while gomori_table.can_be_iterated():
             if is_to_console:
-                print('Step {}:'.format(count))
+                print(f'Step {count}:')
             else:
-                file.write('Step {}:\n'.format(count))
+                file.write(f'Step {count}:\n')
             if is_to_console:
                 element = gomori_table.iterate()
                 print(element)
@@ -586,26 +585,26 @@ class App:
                 tmp_table = gomori_table.get_table_to_print()
                 for row in tmp_table:
                     for element in row:
-                        file.write('{:>6} '.format(element))
+                        file.write(f'{element:>6} ')
                     file.write('\n')
             count += 1
         if is_to_console:
             print('X vector:')
             for element in gomori_table.get_vector_answer():
-                print('{:>6}'.format(str(element)), end=' ')
+                print(f'{element!s:>6}', end=' ')
             print()
             if self.is_maximize:
-                print('Max Z: {}'.format(str(gomori_table.get_function_answer())))
+                print(f'Max Z: {gomori_table.get_function_answer()!s}')
             else:
-                print('Min Z: {}'.format(str(gomori_table.get_function_answer())))
+                print(f'Min Z: {gomori_table.get_function_answer()!s}')
         else:
             file.write('X vector:\n')
             for element in gomori_table.get_vector_answer():
-                file.write('{:>6} '.format(str(element)))
+                file.write(f'{element!s:>6} ')
             file.write('\n')
             if self.is_maximize:
-                file.write('Max Z: {}\n'.format(str(gomori_table.get_function_answer())))
+                file.write(f'Max Z: {gomori_table.get_function_answer()!s}\n')
             else:
-                file.write('Min Z: {}\n'.format(str(gomori_table.get_function_answer())))
+                file.write(f'Min Z: {gomori_table.get_function_answer()!s}\n')
         if not is_to_console:
             file.close()

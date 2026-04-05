@@ -1,43 +1,13 @@
-version: "3.1"
-
 services:
-  db-walle:
-    container_name: database-walle
-    image: sameersbn/postgresql:10-2
-    environment:
-      PG_PASSWORD: $PGPASSWORD
-    restart: always
-    ports:
-      - 5432:5432
-    networks:
-      - botnet-walle
-    volumes:
-      - ./pgdata:/var/lib/postgresql
-    env_file:
-      - ".env"
-
   walle:
     container_name: bot-walle
-    build:
-      context: .
-    command: python app.py
+    build: .
     restart: always
-    environment:
-      WEBAPP_PORT: 3001
     env_file:
-      - ".env"
-    depends_on:
-      - db-walle
+      - .env
     ports:
-      - 8443:3001
-    networks:
-      - botnet-walle
+      - "8443:8443"
     volumes:
-      - .:/src
-
-
-
-networks:
-  botnet-walle:
-    driver: bridge
-
+      - ./temp_images:/app/temp_images
+      - ./webhook_cert.pem:/app/webhook_cert.pem:ro
+      - ./webhook_pkey.pem:/app/webhook_pkey.pem:ro

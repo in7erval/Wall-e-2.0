@@ -43,31 +43,31 @@ class DualTask:
             for j in range(len(matrix_b)):
                 if j == 0 or matrix_a[i][j] < 0:
                     if matrix_a[i][j] == -1:
-                        print('-y{}'.format(j + 1), end='')
+                        print(f'-y{j + 1}', end='')
                     elif matrix_a[i][j] == 1:
-                        print('y{}'.format(j + 1), end='')
+                        print(f'y{j + 1}', end='')
                     else:
-                        print('{}y{}'.format(matrix_a[i][j], j + 1), end='')
+                        print(f'{matrix_a[i][j]}y{j + 1}', end='')
                 else:
                     if matrix_a[i][j] == 1:
-                        print('+y{}'.format(j + 1), end='')
+                        print(f'+y{j + 1}', end='')
                     else:
-                        print('+{}y{}'.format(matrix_a[i][j], j + 1), end='')
-            print('{}{}'.format(signs[i], matrix_b[i]))
+                        print(f'+{matrix_a[i][j]}y{j + 1}', end='')
+            print(f'{signs[i]}{matrix_b[i]}')
         print('Z(y)=', end='')
         for i in range(len(matrix_b)):
             if i == 0 or matrix_c[i] < 0:
                 if matrix_c[i] == -1:
-                    print('-y{}'.format(i + 1), end='')
+                    print(f'-y{i + 1}', end='')
                 elif matrix_c[i] == 1:
-                    print('y{}'.format(i + 1), end='')
+                    print(f'y{i + 1}', end='')
                 else:
-                    print('{}y{}'.format(matrix_c[i], i + 1), end='')
+                    print(f'{matrix_c[i]}y{i + 1}', end='')
             else:
                 if matrix_c[i] == 1:
-                    print('+y{}'.format(i + 1), end='')
+                    print(f'+y{i + 1}', end='')
                 else:
-                    print('+{}y{}'.format(matrix_c[i], i + 1), end='')
+                    print(f'+{matrix_c[i]}y{i + 1}', end='')
         if is_maximize:
             print(' -> max')
         else:
@@ -81,31 +81,31 @@ class DualTask:
             for j in range(len(matrix_b)):
                 if j == 0 or matrix_a[i][j] < 0:
                     if matrix_a[i][j] == -1:
-                        file.write('-y{}'.format(j + 1))
+                        file.write(f'-y{j + 1}')
                     elif matrix_a[i][j] == 1:
-                        file.write('y{}'.format(j + 1))
+                        file.write(f'y{j + 1}')
                     else:
-                        file.write('{}y{}'.format(matrix_a[i][j], j + 1))
+                        file.write(f'{matrix_a[i][j]}y{j + 1}')
                 else:
                     if matrix_a[i][j] == 1:
-                        file.write('+y{}'.format(j + 1))
+                        file.write(f'+y{j + 1}')
                     else:
-                        file.write('+{}y{}'.format(matrix_a[i][j], j + 1))
-            file.write('{}{}\n'.format(signs[i], matrix_b[i]))
+                        file.write(f'+{matrix_a[i][j]}y{j + 1}')
+            file.write(f'{signs[i]}{matrix_b[i]}\n')
         file.write('Z(y)=')
         for i in range(len(matrix_b)):
             if i == 0 or matrix_c[i] < 0:
                 if matrix_c[i] == -1:
-                    file.write('-y{}'.format(i + 1))
+                    file.write(f'-y{i + 1}')
                 elif matrix_c[i] == 1:
-                    file.write('y{}'.format(i + 1))
+                    file.write(f'y{i + 1}')
                 else:
-                    file.write('{}y{}'.format(matrix_c[i], i + 1))
+                    file.write(f'{matrix_c[i]}y{i + 1}')
             else:
                 if matrix_c[i] == 1:
-                    file.write('+y{}'.format(i + 1))
+                    file.write(f'+y{i + 1}')
                 else:
-                    file.write('+{}y{}'.format(matrix_c[i], i + 1))
+                    file.write(f'+{matrix_c[i]}y{i + 1}')
         if is_maximize:
             file.write(' -> max\n')
         else:

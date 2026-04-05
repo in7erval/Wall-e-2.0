@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Wall-e Web App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: var(--tg-theme-hint-color, #666);
+        }
+
+        .card {
+            background-color: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .card h2 {
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        .card p {
+            font-size: 14px;
+            color: var(--tg-theme-hint-color, #666);
+        }
+
+        .button {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 8px;
+            background-color: var(--tg-theme-button-color, #3390ec);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .button:hover {
+            opacity: 0.9;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: var(--tg-theme-button-color, #3390ec);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .status {
+            padding: 8px 12px;
+            border-radius: 6px;
+            background-color: var(--tg-theme-button-color, #3390ec);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            font-size: 14px;
+            text-align: center;
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Wall-e Web App</h1>
+
+        <div class="user-info">
+            <div class="avatar" id="avatar">?</div>
+            <div>
+                <div id="username">Гость</div>
+                <div style="font-size: 12px; color: var(--tg-theme-hint-color, #666);">
+                    ID: <span id="userid">-</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>👋 Привет!</h2>
+            <p>Это демонстрационное Web App для бота Wall-e 2.0</p>
+        </div>
+
+        <div class="card">
+            <h2>🎨 Тема</h2>
+            <p>Web App автоматически подстраивается под тему Telegram</p>
+        </div>
+
+        <button class="button" onclick="sendData()">
+            📤 Отправить данные боту
+        </button>
+
+        <button class="button" onclick="toggleMainButton()">
+            🔘 Главная кнопка
+        </button>
+
+        <div class="status" id="status" style="display: none;"></div>
+    </div>
+
+    <script>
+        // Инициализация Telegram Web App
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        // Получаем данные пользователя
+        const user = tg.initDataUnsafe.user;
+
+        if (user) {
+            document.getElementById('username').textContent =
+                user.first_name + (user.last_name ? ' ' + user.last_name : '');
+            document.getElementById('userid').textContent = user.id;
+            document.getElementById('avatar').textContent =
+                user.first_name.charAt(0).toUpperCase();
+        }
+
+        // Функция отправки данных боту
+        function sendData() {
+            const data = JSON.stringify({
+                action: 'webapp_data',
+                timestamp: new Date().toISOString(),
+                theme: tg.colorScheme
+            });
+
+            tg.sendData(data);
+            showStatus('Данные отправлены боту! ✅');
+        }
+
+        // Управление главной кнопкой
+        let mainButtonVisible = false;
+
+        function toggleMainButton() {
+            if (mainButtonVisible) {
+                tg.MainButton.hide();
+                mainButtonVisible = false;
+            } else {
+                tg.MainButton.setText('НАЖМИ МЕНЯ');
+                tg.MainButton.setColor('#3390ec');
+                tg.MainButton.show();
+                mainButtonVisible = true;
+
+                tg.MainButton.onClick(function() {
+                    showStatus('Главная кнопка нажата! 🎉');
+                    tg.MainButton.hide();
+                    mainButtonVisible = false;
+                });
+            }
+        }
+
+        // Показ статуса
+        function showStatus(message) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.style.display = 'block';
+            setTimeout(() => {
+                status.style.display = 'none';
+            }, 3000);
+        }
+
+        // Адаптация под тему
+        tg.onEvent('themeChanged', function() {
+            document.body.style.backgroundColor = var(--tg-theme-bg-color, '#ffffff');
+        });
+    </script>
+</body>
+</html>

@@ -1,6 +1,7 @@
 import re
 from abc import ABC, abstractmethod
 from fractions import Fraction
+
 from accessify import protected
 
 
@@ -45,12 +46,12 @@ class SimplexTable(ABC):
 
     def print(self):
         for caption in ([''] + self.columns_caption):
-            print('{:>6}'.format(caption), end=' ')
+            print(f'{caption:>6}', end=' ')
         print()
         for i in range(self.rows):
-            print('{:>6}'.format(self.rows_caption[i]), end=' ')
+            print(f'{self.rows_caption[i]:>6}', end=' ')
             for element in self.table[i]:
-                print('{:>6}'.format(str(element)), end=' ')
+                print(f'{element!s:>6}', end=' ')
             print()
 
     def get_table_to_print(self):
@@ -72,7 +73,7 @@ class SimplexTable(ABC):
 
     @staticmethod
     def get_basis_index(basis: str):
-        return int(re.search('(\d+)', basis).group(0))
+        return int(re.search(r'(\d+)', basis).group(0))
 
     def get_vector_answer(self):
         size = SimplexTable.get_basis_index(self.columns_caption[self.columns - 2])

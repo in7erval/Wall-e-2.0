@@ -1,5 +1,6 @@
 import math
 from fractions import Fraction
+
 from accessify import private
 
 from utils.simplex.SimplexTable import SimplexTable
@@ -41,27 +42,27 @@ class Gomori(SimplexTable):
 
     @private
     def print_new_equation(self, q: list):
-        print('Added new equation: {}'.format(-q[len(q) - 1]), end='')
+        print(f'Added new equation: {-q[len(q) - 1]}', end='')
         for i in range(len(q) - 1):
             if q[i] == -1:
-                print('-x{}'.format(i + 1), end='')
+                print(f'-x{i + 1}', end='')
             elif q[i] == 0:
                 continue
             else:
-                print('{}x{}'.format(q[i], i + 1), end='')
+                print(f'{q[i]}x{i + 1}', end='')
         print('<=0')
 
     @private
     def print_new_equation_to_file(self, q: list):
         file = open(self.filename, 'a')
-        file.write('Added new equation: {}'.format(-q[len(q) - 1]))
+        file.write(f'Added new equation: {-q[len(q) - 1]}')
         for i in range(len(q) - 1):
             if q[i] == -1:
-                file.write('-x{}'.format(i + 1))
+                file.write(f'-x{i + 1}')
             elif q[i] == 0:
                 continue
             else:
-                file.write('{}x{}'.format(q[i], i + 1))
+                file.write(f'{q[i]}x{i + 1}')
         file.write('<=0\n')
         file.close()
 
@@ -112,11 +113,11 @@ class Gomori(SimplexTable):
             tmp_table = self.get_table_to_print()
             for row in tmp_table:
                 for element in row:
-                    file.write('{:>6} '.format(element))
+                    file.write(f'{element:>6} ')
                 file.write('\n')
             file.close()
         column = self.find_column()
-        element = 'Element: {} ({}, {})'.format(str(self.table[self.rows - 2][column]), self.rows - 1, column + 1)
+        element = f'Element: {self.table[self.rows - 2][column]!s} ({self.rows - 1}, {column + 1})'
         self.recalculate(self.rows - 2, column)
         return element
 

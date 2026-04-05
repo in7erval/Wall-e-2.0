@@ -1,4 +1,5 @@
 from fractions import Fraction
+
 from accessify import private
 
 from utils.simplex.SimplexTable import SimplexTable
@@ -91,7 +92,7 @@ class ArtificialBasis(SimplexTable):
         for i in range(self.columns - 1):
             c = self.table[self.rows - 1][i]
             find_maximum = self.is_first_stage or self.is_maximize
-            if c < value and find_maximum or c > value and not find_maximum:
+            if (c < value and find_maximum) or (c > value and not find_maximum):
                 value = c
                 index = i
         return index
@@ -103,7 +104,7 @@ class ArtificialBasis(SimplexTable):
         for i in range(self.rows - 1 - int(self.is_first_stage)):
             a = self.table[i][column]
             b = self.table[i][self.columns - 1]
-            if (b >= 0 and a > 0 or b < 0 and a < 0) and (b / a < value or value < 0):
+            if ((b >= 0 and a > 0) or (b < 0 and a < 0)) and (b / a < value or value < 0):
                 value = b / a
                 index = i
         return index
@@ -112,7 +113,7 @@ class ArtificialBasis(SimplexTable):
         find_maximum = self.is_first_stage or self.is_maximize
         for i in range(self.columns - 1):
             c = self.table[self.rows - 1][i]
-            if find_maximum and c < 0 or not find_maximum and c > 0:
+            if (find_maximum and c < 0) or (not find_maximum and c > 0):
                 return True
         return False
 
@@ -130,7 +131,7 @@ class ArtificialBasis(SimplexTable):
     def iterate(self):
         column = self.find_column()
         row = self.find_row(column)
-        element = 'Element: {} ({}, {})'.format(str(self.table[row][column]), row + 1, column + 1)
+        element = f'Element: {self.table[row][column]!s} ({row + 1}, {column + 1})'
         if self.is_first_stage:
             column = self.resize(row, column)
         self.recalculate(row, column)

@@ -1,9 +1,8 @@
-import pathlib
 import random
 from pathlib import Path
 
-from skimage import io
 import numpy as np
+from skimage import io
 
 
 def create_blank_image(width=1000, height=1000):
