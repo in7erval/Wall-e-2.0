@@ -13,26 +13,29 @@ router = Router()
 WEB_APP_URL = "https://walle-bot.duckdns.org/webapp/index.html"
 
 
-def create_web_app_keyboard() -> InlineKeyboardMarkup:
+def create_web_app_keyboard(is_group: bool = False) -> InlineKeyboardMarkup:
     """Клавиатура с Web App кнопкой"""
     builder = InlineKeyboardBuilder()
-    builder.button(
-        text="🚀 Открыть Web App",
-        web_app=WebAppInfo(url=WEB_APP_URL)
-    )
+    if is_group:
+        # В группах web_app кнопка запрещена — используем url
+        builder.button(text="🚀 Открыть Web App", url=WEB_APP_URL)
+    else:
+        # В личном чате — полноценная Mini App кнопка
+        builder.button(text="🚀 Открыть Web App", web_app=WebAppInfo(url=WEB_APP_URL))
     return builder.as_markup()
 
 
 @router.message(Command("webapp"))
 async def cmd_webapp(message: Message) -> None:
     """Открыть Web App"""
+    is_group = message.chat.type in ("group", "supergroup")
     await message.answer(
         text=(
             "🌐 <b>Wall-e Web App</b>\n\n"
             "Статистика, профиль, игра 2048 и админ-панель — "
             "всё в одном приложении внутри Telegram."
         ),
-        reply_markup=create_web_app_keyboard(),
+        reply_markup=create_web_app_keyboard(is_group=is_group),
     )
 
 
